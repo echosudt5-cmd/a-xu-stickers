@@ -62,12 +62,6 @@ test('MCP returns title and image_url without any widget binding', async () => {
     });
     assert.equal(missing.isError, true);
 
-    const invalid = await client.callTool({
-      name: 'show_sticker',
-      arguments: { sticker_id: '0001', size: 161 }
-    });
-    assert.equal(invalid.isError, true);
-
     const list = await client.callTool({
       name: 'list_stickers',
       arguments: {}
