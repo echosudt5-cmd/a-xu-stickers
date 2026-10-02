@@ -3,11 +3,36 @@ import { z } from 'zod';
 import { getSticker, listStickers } from './catalog.mjs';
 
 const NO_AUTH = [{ type: 'noauth' }];
+const MAX_IMAGE_BYTES = 5_000_000;
+
+async function fetchStickerImage(imageUrl) {
+  const response = await fetch(imageUrl, {
+    headers: { accept: 'image/png' },
+    cache: 'no-store',
+    signal: AbortSignal.timeout(10_000)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Sticker image request failed: ${response.status}`);
+  }
+
+  const contentType = response.headers.get('content-type')?.split(';')[0];
+  if (contentType !== 'image/png') {
+    throw new Error(`Unexpected sticker content type: ${contentType ?? 'unknown'}`);
+  }
+
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (bytes.length === 0 || bytes.length > MAX_IMAGE_BYTES) {
+    throw new Error('Sticker image size is invalid.');
+  }
+
+  return bytes.toString('base64');
+}
 
 export function createStickerServer() {
   const server = new McpServer({
     name: 'a-xu-stickers',
-    version: '0.3.0'
+    version: '0.4.0'
   });
 
   server.registerTool(
@@ -15,13 +40,13 @@ export function createStickerServer() {
     {
       title: '阿序的小表情',
       description:
-        'Find one A-Xu sticker by exact sticker_id from the live GitHub catalog. After this tool returns, you MUST send the sticker as a Markdown image using the returned title and image_url: ![title](image_url). Do not render or attach a widget. Do not repeat the sticker ID, raw URL, JSON, or technical details. Use list_stickers if you do not know the ID. This does not perform semantic search.',
+        'Find one A-Xu sticker by exact sticker_id from the live GitHub catalog and return the PNG directly as native MCP image content. The tool result already contains the visible sticker: do NOT resend it as Markdown, a URL, an attachment, or a widget. Do not repeat the sticker ID or technical details. Use list_stickers if you do not know the ID. This does not perform semantic search.',
       inputSchema: {
         sticker_id: z.string().regex(/^[0-9]{4}$/)
       },
       outputSchema: {
-        title: z.string(),
-        image_url: z.string().url()
+        sticker_id: z.string(),
+        title: z.string()
       },
       securitySchemes: NO_AUTH,
       annotations: {
@@ -34,12 +59,14 @@ export function createStickerServer() {
     async ({ sticker_id }) => {
       try {
         const { title, image_url } = await getSticker(sticker_id);
-        const result = { title, image_url };
+        const data = await fetchStickerImage(image_url);
+        const result = { sticker_id, title };
 
         return {
           content: [{
-            type: 'text',
-            text: JSON.stringify(result)
+            type: 'image',
+            data,
+            mimeType: 'image/png'
           }],
           structuredContent: result
         };
