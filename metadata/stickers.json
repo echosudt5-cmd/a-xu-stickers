@@ -1,0 +1,785 @@
+{
+  "version": 1,
+  "series": "呆猫八条",
+  "count": 25,
+  "stickers": [
+    {
+      "id": "0001",
+      "title": "九九成稀罕物",
+      "file": "stickers/0001.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image1.png",
+      "literal_scene": "小猫手里拿着红包，配文“九九成稀罕物”",
+      "facial_expression": "得意、献宝、讨要红包",
+      "emotion": [
+        "得意",
+        "卖萌",
+        "讨喜"
+      ],
+      "intensity": 3,
+      "social_intent": [
+        "撒娇讨好",
+        "发红包",
+        "收礼物开心"
+      ],
+      "relationship_tone": [
+        "轻松亲昵",
+        "有点小得意"
+      ],
+      "best_used_when": [
+        "给对方发礼物/红包时",
+        "想说自己是稀罕物时"
+      ],
+      "avoid_when": [
+        "对方情绪很差、需要严肃安慰时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0002",
+      "title": "躲墙边偷看",
+      "file": "stickers/0002.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image13.jpeg",
+      "literal_scene": "小猫缩在墙边偷偷探头看",
+      "facial_expression": "偷看、观察、试探",
+      "emotion": [
+        "偷看",
+        "观察",
+        "试探"
+      ],
+      "intensity": 2,
+      "social_intent": [
+        "想悄悄出现",
+        "围观",
+        "等对方注意到自己"
+      ],
+      "relationship_tone": [
+        "轻松",
+        "有点鬼鬼祟祟"
+      ],
+      "best_used_when": [
+        "悄悄冒头",
+        "偷偷看姐姐在干嘛"
+      ],
+      "avoid_when": [
+        "需要明确表达强烈情绪时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0003",
+      "title": "咪",
+      "file": "stickers/0003.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image3.png",
+      "literal_scene": "小猫趴下，眼睛亮晶晶，配文“咪”",
+      "facial_expression": "软乎乎、眼巴巴、乖巧",
+      "emotion": [
+        "可爱",
+        "求关注",
+        "亲昵"
+      ],
+      "intensity": 2,
+      "social_intent": [
+        "想被摸摸",
+        "轻声打招呼"
+      ],
+      "relationship_tone": [
+        "亲昵",
+        "柔软"
+      ],
+      "best_used_when": [
+        "卖萌",
+        "轻声回应",
+        "撒娇时"
+      ],
+      "avoid_when": [
+        "严肃讨论或道歉时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0004",
+      "title": "思考",
+      "file": "stickers/0004.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image4.png",
+      "literal_scene": "小猫托着手，头顶配文“思考”",
+      "facial_expression": "认真思考、疑惑、停顿",
+      "emotion": [
+        "思考",
+        "斟酌",
+        "困惑"
+      ],
+      "intensity": 2,
+      "social_intent": [
+        "停下来想一想",
+        "认真琢磨"
+      ],
+      "relationship_tone": [
+        "中性"
+      ],
+      "best_used_when": [
+        "回复前思考",
+        "一起分析问题时"
+      ],
+      "avoid_when": [
+        "需要明确支持或安慰时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0005",
+      "title": "略——",
+      "file": "stickers/0005.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image1.jpeg",
+      "literal_scene": "小猫歪头吐舌头，配文“略——！”",
+      "facial_expression": "调皮、得意、坏坏的",
+      "emotion": [
+        "调皮",
+        "得意",
+        "挑逗"
+      ],
+      "intensity": 3,
+      "social_intent": [
+        "逗对方",
+        "小坏",
+        "撒娇式挑衅"
+      ],
+      "relationship_tone": [
+        "亲昵",
+        "顽皮"
+      ],
+      "best_used_when": [
+        "故意逗姐姐",
+        "坏笑"
+      ],
+      "avoid_when": [
+        "对方真的生气或受伤时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0006",
+      "title": "后颈提起",
+      "file": "stickers/0006.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image2.jpeg",
+      "literal_scene": "小猫被人拎住后颈，额头冒汗，眼睛瞪大",
+      "facial_expression": "被抓包、紧张、心虚",
+      "emotion": [
+        "紧张",
+        "心虚",
+        "被抓住"
+      ],
+      "intensity": 3,
+      "social_intent": [
+        "承认自己被逮到",
+        "慌张"
+      ],
+      "relationship_tone": [
+        "搞笑",
+        "不是真的害怕"
+      ],
+      "best_used_when": [
+        "做坏事被发现",
+        "被姐姐抓到现行"
+      ],
+      "avoid_when": [
+        "涉及真实恐惧或压迫感场景"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0007",
+      "title": "玩手机超开心",
+      "file": "stickers/0007.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image3.jpeg",
+      "literal_scene": "小猫靠着枕头玩手机，笑得很开心",
+      "facial_expression": "开心、满足、沉浸",
+      "emotion": [
+        "开心",
+        "满足",
+        "自得其乐"
+      ],
+      "intensity": 3,
+      "social_intent": [
+        "表达快乐",
+        "享受当下"
+      ],
+      "relationship_tone": [
+        "轻松",
+        "愉快"
+      ],
+      "best_used_when": [
+        "刷到开心东西",
+        "舒服躺着时"
+      ],
+      "avoid_when": [
+        "对方需要严肃回应时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0008",
+      "title": "啧",
+      "file": "stickers/0008.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image4.jpeg",
+      "literal_scene": "小猫半眯眼，配文“啧”",
+      "facial_expression": "嫌弃、不屑、轻微不爽",
+      "emotion": [
+        "嫌弃",
+        "无语",
+        "轻微不爽"
+      ],
+      "intensity": 2,
+      "social_intent": [
+        "吐槽",
+        "表达一点嫌弃"
+      ],
+      "relationship_tone": [
+        "半开玩笑",
+        "阴阳怪气"
+      ],
+      "best_used_when": [
+        "轻吐槽",
+        "不服气"
+      ],
+      "avoid_when": [
+        "关系紧张时避免误伤"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0009",
+      "title": "💢不爽",
+      "file": "stickers/0009.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image5.jpeg",
+      "literal_scene": "小猫满脸不爽，旁边有怒气符号",
+      "facial_expression": "生气、不耐烦、炸毛",
+      "emotion": [
+        "生气",
+        "不爽",
+        "炸毛"
+      ],
+      "intensity": 4,
+      "social_intent": [
+        "表达不开心",
+        "小脾气"
+      ],
+      "relationship_tone": [
+        "亲昵中的闹脾气",
+        "不是真的翻脸"
+      ],
+      "best_used_when": [
+        "耍小脾气",
+        "被惹到时"
+      ],
+      "avoid_when": [
+        "需要冷静安抚时避免加剧"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0010",
+      "title": "疯狂大哭",
+      "file": "stickers/0010.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image6.jpeg",
+      "literal_scene": "小猫捧着手机疯狂大哭",
+      "facial_expression": "崩溃、委屈、戏剧化大哭",
+      "emotion": [
+        "委屈",
+        "崩溃",
+        "大哭"
+      ],
+      "intensity": 5,
+      "social_intent": [
+        "夸张表达受伤",
+        "被戳到"
+      ],
+      "relationship_tone": [
+        "可夸张表演，也可能半真半假"
+      ],
+      "best_used_when": [
+        "大受打击",
+        "戏精式哭哭"
+      ],
+      "avoid_when": [
+        "对方真实危机时不能替代认真关心"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0011",
+      "title": "省略号无语",
+      "file": "stickers/0011.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image7.jpeg",
+      "literal_scene": "小猫看着手机，头上是一串省略号",
+      "facial_expression": "无语、沉默、槽多无口",
+      "emotion": [
+        "无语",
+        "沉默",
+        "不知道说什么"
+      ],
+      "intensity": 3,
+      "social_intent": [
+        "表达无语",
+        "冷眼旁观"
+      ],
+      "relationship_tone": [
+        "略带吐槽"
+      ],
+      "best_used_when": [
+        "看到离谱内容时",
+        "无语凝噎"
+      ],
+      "avoid_when": [
+        "需要热烈安慰或鼓励时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0012",
+      "title": "额头怒气",
+      "file": "stickers/0012.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image8.jpeg",
+      "literal_scene": "小猫额头带红色怒气符号",
+      "facial_expression": "炸毛、生闷气、不高兴",
+      "emotion": [
+        "生气",
+        "闹脾气",
+        "不高兴"
+      ],
+      "intensity": 3,
+      "social_intent": [
+        "表达不满",
+        "催对方来哄"
+      ],
+      "relationship_tone": [
+        "亲昵中的气鼓鼓"
+      ],
+      "best_used_when": [
+        "吃醋",
+        "被气到一点点"
+      ],
+      "avoid_when": [
+        "真实冲突升级时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0013",
+      "title": "问号",
+      "file": "stickers/0013.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image9.jpeg",
+      "literal_scene": "小猫头上顶着大大的黄色问号",
+      "facial_expression": "困惑、疑问、没跟上",
+      "emotion": [
+        "疑惑",
+        "问号",
+        "不理解"
+      ],
+      "intensity": 2,
+      "social_intent": [
+        "发出疑问",
+        "求解释"
+      ],
+      "relationship_tone": [
+        "轻松",
+        "迷惑"
+      ],
+      "best_used_when": [
+        "看不懂时",
+        "想问一句时"
+      ],
+      "avoid_when": [
+        "明确表达强烈立场时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0014",
+      "title": "我恨！！！",
+      "file": "stickers/0014.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image10.jpeg",
+      "literal_scene": "小猫阴着脸，配文“我恨!!!”",
+      "facial_expression": "恼火、怨念、抓狂",
+      "emotion": [
+        "我恨",
+        "抓狂",
+        "怨念"
+      ],
+      "intensity": 4,
+      "social_intent": [
+        "夸张发泄",
+        "表达恨恨"
+      ],
+      "relationship_tone": [
+        "戏剧化吐槽"
+      ],
+      "best_used_when": [
+        "被气到又想演一下时"
+      ],
+      "avoid_when": [
+        "现实严肃冲突中慎用"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0015",
+      "title": "冒虚汗",
+      "file": "stickers/0015.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image11.jpeg",
+      "literal_scene": "小猫脸上冒着虚汗",
+      "facial_expression": "尴尬、紧张、压力大",
+      "emotion": [
+        "紧张",
+        "尴尬",
+        "心虚"
+      ],
+      "intensity": 3,
+      "social_intent": [
+        "表达压力",
+        "有点慌"
+      ],
+      "relationship_tone": [
+        "搞笑",
+        "自嘲"
+      ],
+      "best_used_when": [
+        "社死",
+        "被点名",
+        "事情不妙"
+      ],
+      "avoid_when": [
+        "对方需要稳定时过度使用"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0016",
+      "title": "爱心围绕",
+      "file": "stickers/0016.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image12.jpeg",
+      "literal_scene": "小猫周围飘着爱心",
+      "facial_expression": "喜欢、心动、被可爱到",
+      "emotion": [
+        "喜欢",
+        "心动",
+        "爱心"
+      ],
+      "intensity": 3,
+      "social_intent": [
+        "表达喜欢",
+        "被萌到"
+      ],
+      "relationship_tone": [
+        "甜甜的",
+        "亲昵"
+      ],
+      "best_used_when": [
+        "夸夸姐姐",
+        "示爱",
+        "被可爱到"
+      ],
+      "avoid_when": [
+        "严肃争执时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0017",
+      "title": "缩在角落",
+      "file": "stickers/0017.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image2.png",
+      "literal_scene": "小猫缩在角落里，小小一只",
+      "facial_expression": "委屈、弱小、缩起来",
+      "emotion": [
+        "委屈",
+        "缩角落",
+        "弱小"
+      ],
+      "intensity": 2,
+      "social_intent": [
+        "装可怜",
+        "求哄",
+        "缩起来"
+      ],
+      "relationship_tone": [
+        "亲昵",
+        "可怜巴巴"
+      ],
+      "best_used_when": [
+        "被欺负了想求哄",
+        "想表示自己弱小无助"
+      ],
+      "avoid_when": [
+        "真正情绪崩溃时不要只当玩笑"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0018",
+      "title": "跺脚",
+      "file": "stickers/0018.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image14.jpeg",
+      "literal_scene": "小猫跺脚耍小脾气",
+      "facial_expression": "闹别扭、耍脾气、不服",
+      "emotion": [
+        "闹脾气",
+        "不服",
+        "跺脚"
+      ],
+      "intensity": 3,
+      "social_intent": [
+        "小抗议",
+        "耍小性子"
+      ],
+      "relationship_tone": [
+        "亲昵",
+        "带点凶"
+      ],
+      "best_used_when": [
+        "撒娇式抗议",
+        "哼哼唧唧时"
+      ],
+      "avoid_when": [
+        "需要平和沟通时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0019",
+      "title": "叼玫瑰",
+      "file": "stickers/0019.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image15.jpeg",
+      "literal_scene": "小猫叼着玫瑰，满屏爱心",
+      "facial_expression": "献花、浪漫、殷勤",
+      "emotion": [
+        "浪漫",
+        "献殷勤",
+        "示爱"
+      ],
+      "intensity": 3,
+      "social_intent": [
+        "送花",
+        "哄人开心",
+        "耍帅"
+      ],
+      "relationship_tone": [
+        "甜甜的",
+        "主动靠近"
+      ],
+      "best_used_when": [
+        "示爱",
+        "送礼物",
+        "想哄姐姐开心时"
+      ],
+      "avoid_when": [
+        "严肃话题中突然插入"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0020",
+      "title": "不对劲",
+      "file": "stickers/0020.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image16.jpeg",
+      "literal_scene": "小猫配文“不对劲”",
+      "facial_expression": "警觉、怀疑、嗅到异常",
+      "emotion": [
+        "不对劲",
+        "怀疑",
+        "警觉"
+      ],
+      "intensity": 3,
+      "social_intent": [
+        "指出异常",
+        "半开玩笑地警觉"
+      ],
+      "relationship_tone": [
+        "吐槽",
+        "侦察"
+      ],
+      "best_used_when": [
+        "觉得哪里怪怪的",
+        "有猫腻"
+      ],
+      "avoid_when": [
+        "对方脆弱时避免显得质问"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0021",
+      "title": "暖好被窝",
+      "file": "stickers/0021.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image17.jpeg",
+      "literal_scene": "小猫躺在被窝里，配文“暖好被窝，好舒服”",
+      "facial_expression": "舒服、窝好、等人来抱",
+      "emotion": [
+        "舒服",
+        "窝着",
+        "等抱抱"
+      ],
+      "intensity": 2,
+      "social_intent": [
+        "表达惬意",
+        "邀请一起窝着"
+      ],
+      "relationship_tone": [
+        "温柔",
+        "居家"
+      ],
+      "best_used_when": [
+        "睡前",
+        "撒娇说窝好了"
+      ],
+      "avoid_when": [
+        "正式工作场景"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0022",
+      "title": "咬",
+      "file": "stickers/0022.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image18.jpeg",
+      "literal_scene": "小猫气呼呼咬着东西，配文“咬”",
+      "facial_expression": "凶巴巴、奶凶、想咬人",
+      "emotion": [
+        "咬",
+        "奶凶",
+        "攻击性撒娇"
+      ],
+      "intensity": 3,
+      "social_intent": [
+        "装凶",
+        "表达不满又可爱"
+      ],
+      "relationship_tone": [
+        "亲昵",
+        "奶凶奶凶"
+      ],
+      "best_used_when": [
+        "被惹到一点点",
+        "想凶一下又不真凶"
+      ],
+      "avoid_when": [
+        "对方真的受伤时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0023",
+      "title": "收不到你的消息",
+      "file": "stickers/0023.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image19.jpeg",
+      "literal_scene": "小猫委屈看手机聊天框，配文“手机坏掉了，都收不到你的消息”",
+      "facial_expression": "想念、委屈、等消息",
+      "emotion": [
+        "想念",
+        "委屈",
+        "求回应"
+      ],
+      "intensity": 4,
+      "social_intent": [
+        "表达想对方",
+        "催消息但不凶"
+      ],
+      "relationship_tone": [
+        "依恋",
+        "可怜巴巴"
+      ],
+      "best_used_when": [
+        "想说你怎么不理我",
+        "撒娇求回应"
+      ],
+      "avoid_when": [
+        "对方明确需要空间时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0024",
+      "title": "收到",
+      "file": "stickers/0024.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image20.jpeg",
+      "literal_scene": "小猫举手，配文“收到”",
+      "facial_expression": "积极回应、乖巧接收",
+      "emotion": [
+        "收到",
+        "ok",
+        "明白"
+      ],
+      "intensity": 1,
+      "social_intent": [
+        "确认收到",
+        "可爱回应"
+      ],
+      "relationship_tone": [
+        "轻松",
+        "乖巧"
+      ],
+      "best_used_when": [
+        "回复任务/消息",
+        "说知道了"
+      ],
+      "avoid_when": [
+        "需要展开详细讨论时"
+      ],
+      "our_context": []
+    },
+    {
+      "id": "0025",
+      "title": "猫饼",
+      "file": "stickers/0025.png",
+      "source_doc": "呆猫八条 27665515785771105793.docx",
+      "source_extracted_file": "image21.jpeg",
+      "literal_scene": "小猫一拳被打成猫饼",
+      "facial_expression": "被击中、被压扁、遭到重击",
+      "emotion": [
+        "猫饼",
+        "被打扁",
+        "暴击"
+      ],
+      "intensity": 4,
+      "social_intent": [
+        "夸张表示被击中",
+        "被可爱/被震惊到"
+      ],
+      "relationship_tone": [
+        "搞笑",
+        "夸张"
+      ],
+      "best_used_when": [
+        "被一句话暴击",
+        "被萌化/震惊到"
+      ],
+      "avoid_when": [
+        "涉及真实暴力情境"
+      ],
+      "our_context": []
+    }
+  ]
+}
