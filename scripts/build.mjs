@@ -15,6 +15,6 @@ const nodeFiles = { name: 'node-files', setup(builder) {
 } };
 const result = await build({ entryPoints: ['./widget/sticker.mjs'], plugins: [nodeFiles], tsconfigRaw: {}, bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022', minify: true });
 const template = await readFile(new URL('widget/sticker.html', root), 'utf8');
-const html = template.replace('/* WIDGET_BUNDLE */', result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script'));
+const html = template.replace('/* WIDGET_BUNDLE */', () => result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script'));
 await mkdir(new URL('dist/', root), { recursive: true });
 await writeFile(new URL('dist/sticker.html', root), html);
