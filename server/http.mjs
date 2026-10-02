@@ -18,5 +18,6 @@ export function createHttpServer() {
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT || 8787);
-  createHttpServer().listen(port, process.env.HOST || '127.0.0.1', () => console.error(`A-Xu MCP: http://127.0.0.1:${port}/mcp`));
+  const host = process.env.HOST || '0.0.0.0';
+  createHttpServer().listen(port, host, () => console.error(`A-Xu MCP listening on http://${host}:${port}/mcp`));
 }
