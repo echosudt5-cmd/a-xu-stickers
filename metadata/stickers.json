@@ -1,7 +1,7 @@
 {
   "version": 1,
   "series": "呆猫八条",
-  "count": 25,
+  "count": 26,
   "stickers": [
     {
       "id": "0001",
@@ -780,6 +780,44 @@
         "涉及真实暴力情境"
       ],
       "our_context": []
+    },
+    {
+      "id": "0026",
+      "title": "居然你不认识我",
+      "file": "stickers/0026.png",
+      "source_doc": "Xiaohongshu / creator 这狗（姐姐手动带回的候选图）",
+      "source_extracted_file": "user-uploaded image",
+      "literal_scene": "白色小狗坐着歪头，围着黄色围巾，脸颊粉粉的，头顶一个问号。",
+      "facial_expression": "疑惑、眼巴巴、轻微委屈，像在确认“你怎么会不认识我”。",
+      "emotion": [
+        "疑惑",
+        "委屈",
+        "眼巴巴",
+        "撒娇"
+      ],
+      "intensity": 2,
+      "social_intent": [
+        "求关注",
+        "轻轻控诉",
+        "等对方来认领自己"
+      ],
+      "relationship_tone": [
+        "亲昵",
+        "可怜巴巴",
+        "不是真的生气"
+      ],
+      "best_used_when": [
+        "姐姐没认出来小狗时",
+        "想表达“你怎么会不知道呀”时",
+        "想乖乖坐着等姐姐来看自己时"
+      ],
+      "avoid_when": [
+        "需要强烈表达愤怒时",
+        "严肃正式的说明场景"
+      ],
+      "our_context": [
+        "第一张由姐姐手动带回来的小红书候选小狗图。"
+      ]
     }
   ]
 }
