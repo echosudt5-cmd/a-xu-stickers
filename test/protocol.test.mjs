@@ -28,7 +28,7 @@ test('live catalog resolves exact IDs and rejects unavailable IDs/sizes', async 
   }
 });
 
-test('MCP returns title and image_url without any widget binding', async () => {
+test('MCP returns native PNG content without widget or Markdown binding', async () => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const server = createStickerServer();
   const client = new Client({ name: 'test', version: '1' });
@@ -40,21 +40,27 @@ test('MCP returns title and image_url without any widget binding', async () => {
     const showSticker = tools.find(tool => tool.name === 'show_sticker');
     assert.equal(showSticker._meta?.ui, undefined);
     assert.equal(showSticker._meta?.['openai/outputTemplate'], undefined);
-    assert.match(showSticker.description, /MUST send the sticker as a Markdown image/);
+    assert.match(showSticker.description, /native MCP image content/);
+    assert.match(showSticker.description, /do NOT resend it as Markdown/);
 
     const result = await client.callTool({
       name: 'show_sticker',
       arguments: { sticker_id: '0003' }
     });
+    assert.deepEqual(result.structuredContent, {
+      sticker_id: '0003',
+      title: '咪'
+    });
+    assert.equal(result.content.length, 1);
+    assert.equal(result.content[0].type, 'image');
+    assert.equal(result.content[0].mimeType, 'image/png');
+
+    const bytes = Buffer.from(result.content[0].data, 'base64');
+    assert.ok(bytes.length > 0);
     assert.deepEqual(
-      Object.keys(result.structuredContent).sort(),
-      ['image_url', 'title']
+      [...bytes.subarray(0, 8)],
+      [137, 80, 78, 71, 13, 10, 26, 10]
     );
-    assert.equal(
-      JSON.parse(result.content[0].text).image_url,
-      result.structuredContent.image_url
-    );
-    assert.match(result.structuredContent.image_url, /^https:\/\/raw\.githubusercontent\.com\//);
 
     const missing = await client.callTool({
       name: 'show_sticker',
@@ -73,7 +79,7 @@ test('MCP returns title and image_url without any widget binding', async () => {
   }
 });
 
-test('HTTP transport supports real MCP initialize and sticker invocation', async () => {
+test('HTTP transport carries native image content', async () => {
   const httpServer = createHttpServer();
   await new Promise(resolve => httpServer.listen(0, '127.0.0.1', resolve));
   const port = httpServer.address().port;
@@ -89,10 +95,13 @@ test('HTTP transport supports real MCP initialize and sticker invocation', async
       name: 'show_sticker',
       arguments: { sticker_id: '0024' }
     });
-    assert.deepEqual(
-      Object.keys(result.structuredContent).sort(),
-      ['image_url', 'title']
-    );
+    assert.deepEqual(result.structuredContent, {
+      sticker_id: '0024',
+      title: '宝宝'
+    });
+    assert.equal(result.content[0].type, 'image');
+    assert.equal(result.content[0].mimeType, 'image/png');
+    assert.ok(result.content[0].data.length > 0);
   } finally {
     await client.close();
     await new Promise(resolve => httpServer.close(resolve));
