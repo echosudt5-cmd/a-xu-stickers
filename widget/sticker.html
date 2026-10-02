@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light dark; }
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body { width: 100%; overflow: hidden; }
+    #sticker { margin: 0; padding: 0; display: flex; justify-content: flex-start; align-items: flex-start; }
+    img { display: block; width: var(--sticker-size, 140px); height: var(--sticker-size, 140px); max-width: 100%; object-fit: contain; object-position: left center; border: 0; margin: 0; }
+    [hidden] { display: none !important; }
+    #status { margin: 0; max-width: 160px; font: 12px/1.5 system-ui; color: inherit; }
+  </style>
+</head>
+<body>
+  <div id="sticker"><img id="image" hidden alt=""></div>
+  <p id="status" role="status" hidden></p>
+  <script type="module">/* WIDGET_BUNDLE */</script>
+</body>
+</html>

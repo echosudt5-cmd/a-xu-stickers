@@ -1,0 +1,19 @@
+{
+  "name": "a-xu-stickers",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "node server/http.mjs",
+    "start:stdio": "node server/stdio.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@modelcontextprotocol/ext-apps": "^1.0.1",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": { "esbuild": "^0.25.0", "@playwright/test": "^1.58.0" }
+}
