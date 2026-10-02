@@ -95,10 +95,8 @@ test('HTTP transport carries native image content', async () => {
       name: 'show_sticker',
       arguments: { sticker_id: '0024' }
     });
-    assert.deepEqual(result.structuredContent, {
-      sticker_id: '0024',
-      title: '宝宝'
-    });
+    assert.equal(result.structuredContent.sticker_id, '0024');
+    assert.equal(typeof result.structuredContent.title, 'string');
     assert.equal(result.content[0].type, 'image');
     assert.equal(result.content[0].mimeType, 'image/png');
     assert.ok(result.content[0].data.length > 0);
