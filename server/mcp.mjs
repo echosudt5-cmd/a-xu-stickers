@@ -14,7 +14,7 @@ const NO_AUTH = [{ type: 'noauth' }];
 export function createStickerServer() {
   const server = new McpServer({
     name: 'a-xu-stickers',
-    version: '0.1.1'
+    version: '0.2.0'
   });
 
   registerAppResource(
@@ -61,7 +61,7 @@ export function createStickerServer() {
     {
       title: '阿序的小表情',
       description:
-        'Show one A-Xu sticker inline in the conversation by exact sticker_id (0001–0025). Use list_stickers if you do not know the ID. Default size 140px. The widget renders the image; avoid extra captions or explaining the call. This does not perform semantic search.',
+        'Find one A-Xu sticker by exact sticker_id from the live GitHub catalog. Default size 140px. In clients that render MCP widgets, the widget shows it inline. In clients that do not render the widget, embed the returned image_url directly as a Markdown image using the returned title as alt text. Avoid repeating the ID or technical details. Use list_stickers if you do not know the ID. This does not perform semantic search.',
       inputSchema: {
         sticker_id: z.string().regex(/^[0-9]{4}$/),
         size: z.number().int().min(120).max(160).default(140)
@@ -76,7 +76,7 @@ export function createStickerServer() {
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
-        openWorldHint: false,
+        openWorldHint: true,
         idempotentHint: true
       },
       _meta: {
@@ -92,7 +92,7 @@ export function createStickerServer() {
     },
     async ({ sticker_id, size }) => {
       try {
-        const sticker = getSticker(sticker_id, size);
+        const sticker = await getSticker(sticker_id, size);
 
         return {
           content: [{
@@ -118,19 +118,19 @@ export function createStickerServer() {
     {
       title: 'List sticker IDs',
       description:
-        'List exact A-Xu sticker IDs and titles. No image is rendered. Semantic retrieval is not implemented yet.',
+        'List the exact A-Xu sticker IDs and titles currently available in the live GitHub catalog. No image is rendered. Semantic retrieval is not implemented yet.',
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
-        openWorldHint: false,
+        openWorldHint: true,
         idempotentHint: true
       }
     },
     async () => ({
       content: [],
       structuredContent: {
-        stickers: listStickers()
+        stickers: await listStickers()
       }
     })
   );
