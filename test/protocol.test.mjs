@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { createStickerServer } from '../server/mcp.mjs';
+import { createStickerServer, WIDGET_URI } from '../server/mcp.mjs';
 import { getSticker, listStickers, ASSET_BASE } from '../server/catalog.mjs';
 import { createHttpServer } from '../server/http.mjs';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
@@ -28,7 +28,7 @@ test('live catalog resolves exact IDs and rejects unavailable IDs/sizes', async 
   }
 });
 
-test('MCP returns title and image_url without any widget binding', async () => {
+test('MCP exposes the v3 inline widget and returns its complete render data', async () => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const server = createStickerServer();
   const client = new Client({ name: 'test', version: '1' });
@@ -38,29 +38,50 @@ test('MCP returns title and image_url without any widget binding', async () => {
   try {
     const { tools } = await client.listTools();
     const showSticker = tools.find(tool => tool.name === 'show_sticker');
-    assert.equal(showSticker._meta?.ui, undefined);
-    assert.equal(showSticker._meta?.['openai/outputTemplate'], undefined);
-    assert.match(showSticker.description, /MUST send the sticker as a Markdown image/);
+    assert.equal(showSticker._meta.ui.resourceUri, WIDGET_URI);
+    assert.equal(showSticker._meta['openai/outputTemplate'], WIDGET_URI);
+    assert.deepEqual(showSticker._meta.ui.visibility, ['model', 'app']);
+    assert.match(showSticker.description, /Do not repeat the image in Markdown/);
 
-    const result = await client.callTool({
-      name: 'show_sticker',
-      arguments: { sticker_id: '0003' }
-    });
+    const resource = await client.readResource({ uri: WIDGET_URI });
+    assert.equal(resource.contents[0].mimeType, 'text/html;profile=mcp-app');
+    assert.equal(resource.contents[0]._meta.ui.prefersBorder, false);
+    assert.deepEqual(resource.contents[0]._meta.ui.availableDisplayModes, ['inline']);
     assert.deepEqual(
-      Object.keys(result.structuredContent).sort(),
-      ['image_url', 'title']
+      resource.contents[0]._meta.ui.csp.resourceDomains,
+      ['https://raw.githubusercontent.com']
     );
-    assert.equal(
-      JSON.parse(result.content[0].text).image_url,
-      result.structuredContent.image_url
-    );
-    assert.match(result.structuredContent.image_url, /^https:\/\/raw\.githubusercontent\.com\//);
+    assert.ok(resource.contents[0].text.includes('object-position: left center'));
+
+    for (const size of [120, 140, 160]) {
+      const result = await client.callTool({
+        name: 'show_sticker',
+        arguments: { sticker_id: '0003', size }
+      });
+      assert.deepEqual(
+        Object.keys(result.structuredContent).sort(),
+        ['image_url', 'size', 'sticker_id', 'title']
+      );
+      assert.equal(result.structuredContent.sticker_id, '0003');
+      assert.equal(result.structuredContent.size, size);
+      assert.equal(
+        JSON.parse(result.content[0].text).image_url,
+        result.structuredContent.image_url
+      );
+      assert.match(result.structuredContent.image_url, /^https:\/\/raw\.githubusercontent\.com\//);
+    }
 
     const missing = await client.callTool({
       name: 'show_sticker',
       arguments: { sticker_id: '9999' }
     });
     assert.equal(missing.isError, true);
+
+    const invalid = await client.callTool({
+      name: 'show_sticker',
+      arguments: { sticker_id: '0001', size: 161 }
+    });
+    assert.equal(invalid.isError, true);
 
     const list = await client.callTool({
       name: 'list_stickers',
@@ -89,10 +110,8 @@ test('HTTP transport supports real MCP initialize and sticker invocation', async
       name: 'show_sticker',
       arguments: { sticker_id: '0024' }
     });
-    assert.deepEqual(
-      Object.keys(result.structuredContent).sort(),
-      ['image_url', 'title']
-    );
+    assert.equal(result.structuredContent.sticker_id, '0024');
+    assert.equal(result.structuredContent.size, 140);
   } finally {
     await client.close();
     await new Promise(resolve => httpServer.close(resolve));
