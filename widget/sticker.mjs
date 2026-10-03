@@ -1,9 +1,10 @@
 import { App } from '@modelcontextprotocol/ext-apps';
 
-const app = new App({ name: 'a-xu-sticker', version: '0.1.0' }, {});
+const app = new App({ name: 'a-xu-sticker', version: '0.2.0' }, {});
 const image = document.querySelector('#image');
 const status = document.querySelector('#status');
-const basePath = '/echosudt5-cmd/a-xu-stickers/';
+const githubBasePath = '/echosudt5-cmd/a-xu-stickers/';
+const proxyOrigin = 'https://a-xu-stickers.onrender.com';
 let connected = false;
 function notifySize() {
   if (connected) void app.sendSizeChanged({ height: Math.ceil(document.body.getBoundingClientRect().height) }).catch(() => {});
@@ -15,11 +16,36 @@ function fail(message) {
   status.hidden = false;
   notifySize();
 }
-export function renderSticker(data) {
-  if (!data || typeof data.image_url !== 'string' || !/^[0-9]{4}$/.test(data.sticker_id)) { fail('表情暂时没能加载'); return; }
+function unwrapToolOutput(value) {
+  return value?.structuredContent ?? value?.structured_content ?? value;
+}
+export function renderSticker(value) {
+  const data = unwrapToolOutput(value);
+  if (!data || typeof data.image_url !== 'string' || !/^[0-9]{4}$/.test(data.sticker_id)) {
+    fail('没有收到表情数据');
+    return;
+  }
+
   let url;
-  try { url = new URL(data.image_url); } catch { fail('表情暂时没能加载'); return; }
-  if (url.origin !== 'https://raw.githubusercontent.com' || !url.pathname.startsWith(basePath) || !url.pathname.endsWith(`/stickers/${data.sticker_id}.png`) || url.search || url.hash) { fail('表情地址不可用'); return; }
+  try { url = new URL(data.image_url); } catch { fail('表情地址不可用'); return; }
+
+  const proxyPath = `/stickers/${data.sticker_id}.png`;
+  const isProxyUrl =
+    url.origin === proxyOrigin &&
+    url.pathname === proxyPath &&
+    !url.search &&
+    !url.hash;
+  const isGithubUrl =
+    url.origin === 'https://raw.githubusercontent.com' &&
+    url.pathname.startsWith(githubBasePath) &&
+    url.pathname.endsWith(proxyPath) &&
+    !url.search &&
+    !url.hash;
+  if (!isProxyUrl && !isGithubUrl) {
+    fail('表情地址不可用');
+    return;
+  }
+
   const size = Number.isInteger(data.size) ? Math.max(120, Math.min(160, data.size)) : 140;
   image.style.setProperty('--sticker-size', `${size}px`);
   image.alt = typeof data.title === 'string' ? data.title : '阿序的小表情';
@@ -29,8 +55,8 @@ export function renderSticker(data) {
   notifySize();
 }
 image.onload = notifySize;
-image.onerror = () => fail('表情暂时没能加载');
-app.ontoolresult = result => result.isError ? fail('没找到这张表情') : renderSticker(result.structuredContent);
+image.onerror = () => fail('表情图片加载失败');
+app.ontoolresult = result => result.isError ? fail('没找到这张表情') : renderSticker(result);
 app.ontoolcancelled = () => { image.hidden = true; status.hidden = true; notifySize(); };
 // Existing ChatGPT clients may supply the initial result through the compatibility bridge.
 if (window.openai?.toolOutput) renderSticker(window.openai.toolOutput);

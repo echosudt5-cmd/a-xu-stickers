@@ -7,18 +7,19 @@ import {
 import { z } from 'zod';
 import { getSticker, listStickers } from './catalog.mjs';
 
-export const WIDGET_URI = 'ui://a-xu/sticker-v3.html';
+export const WIDGET_URI = 'ui://a-xu/sticker-v4.html';
+export const APP_ORIGIN = 'https://a-xu-stickers.onrender.com';
 const NO_AUTH = [{ type: 'noauth' }];
 
 export function createStickerServer() {
   const server = new McpServer({
     name: 'a-xu-stickers',
-    version: '0.4.0'
+    version: '0.5.0'
   });
 
   registerAppResource(
     server,
-    'a-xu-sticker-v3',
+    'a-xu-sticker-v4',
     WIDGET_URI,
     {
       description: 'Render one small A-Xu sticker inline.'
@@ -36,7 +37,7 @@ export function createStickerServer() {
             prefersBorder: false,
             availableDisplayModes: ['inline'],
             csp: {
-              resourceDomains: ['https://raw.githubusercontent.com'],
+              resourceDomains: [APP_ORIGIN, 'https://raw.githubusercontent.com'],
               connectDomains: []
             }
           },
@@ -44,7 +45,7 @@ export function createStickerServer() {
           'openai/widgetDescription':
             'A single small, left-aligned A-Xu sticker on a transparent background. The sticker is already visible; do not repeat it in Markdown or add its title, ID, URL, or technical details.',
           'openai/widgetCSP': {
-            resource_domains: ['https://raw.githubusercontent.com'],
+            resource_domains: [APP_ORIGIN, 'https://raw.githubusercontent.com'],
             connect_domains: []
           },
           'openai/ui': {
@@ -90,13 +91,17 @@ export function createStickerServer() {
     async ({ sticker_id, size }) => {
       try {
         const sticker = await getSticker(sticker_id, size);
+        const renderData = {
+          ...sticker,
+          image_url: `${APP_ORIGIN}/stickers/${sticker.sticker_id}.png`
+        };
 
         return {
           content: [{
             type: 'text',
-            text: JSON.stringify(sticker)
+            text: JSON.stringify(renderData)
           }],
-          structuredContent: sticker
+          structuredContent: renderData
         };
       } catch (error) {
         return {

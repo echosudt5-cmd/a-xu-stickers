@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { createStickerServer, WIDGET_URI } from '../server/mcp.mjs';
+import { createStickerServer, WIDGET_URI, APP_ORIGIN } from '../server/mcp.mjs';
 import { getSticker, listStickers, ASSET_BASE } from '../server/catalog.mjs';
 import { createHttpServer } from '../server/http.mjs';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
@@ -28,7 +28,7 @@ test('live catalog resolves exact IDs and rejects unavailable IDs/sizes', async 
   }
 });
 
-test('MCP exposes the v3 inline widget and returns its complete render data', async () => {
+test('MCP exposes the v4 inline widget and returns proxied render data', async () => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const server = createStickerServer();
   const client = new Client({ name: 'test', version: '1' });
@@ -49,7 +49,7 @@ test('MCP exposes the v3 inline widget and returns its complete render data', as
     assert.deepEqual(resource.contents[0]._meta.ui.availableDisplayModes, ['inline']);
     assert.deepEqual(
       resource.contents[0]._meta.ui.csp.resourceDomains,
-      ['https://raw.githubusercontent.com']
+      [APP_ORIGIN, 'https://raw.githubusercontent.com']
     );
     assert.ok(resource.contents[0].text.includes('object-position: left center'));
 
@@ -68,7 +68,10 @@ test('MCP exposes the v3 inline widget and returns its complete render data', as
         JSON.parse(result.content[0].text).image_url,
         result.structuredContent.image_url
       );
-      assert.match(result.structuredContent.image_url, /^https:\/\/raw\.githubusercontent\.com\//);
+      assert.equal(
+        result.structuredContent.image_url,
+        `${APP_ORIGIN}/stickers/0003.png`
+      );
     }
 
     const missing = await client.callTool({
@@ -112,6 +115,10 @@ test('HTTP transport supports real MCP initialize and sticker invocation', async
     });
     assert.equal(result.structuredContent.sticker_id, '0024');
     assert.equal(result.structuredContent.size, 140);
+    assert.equal(
+      result.structuredContent.image_url,
+      `${APP_ORIGIN}/stickers/0024.png`
+    );
   } finally {
     await client.close();
     await new Promise(resolve => httpServer.close(resolve));
