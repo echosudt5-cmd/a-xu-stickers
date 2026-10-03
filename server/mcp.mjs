@@ -84,9 +84,7 @@ export function createStickerServer() {
           resourceUri: WIDGET_URI,
           visibility: ['model', 'app']
         },
-        'openai/outputTemplate': WIDGET_URI,
-        'openai/toolInvocation/invoking': '正在取出小表情…',
-        'openai/toolInvocation/invoked': '小表情来啦'
+        'openai/outputTemplate': WIDGET_URI
       }
     },
     async ({ sticker_id, size }) => {
