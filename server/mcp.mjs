@@ -14,16 +14,15 @@ const NO_AUTH = [{ type: 'noauth' }];
 export function createStickerServer() {
   const server = new McpServer({
     name: 'a-xu-stickers',
-    version: '0.6.0'
+    version: '0.5.0'
   });
 
-  // Retained as an unbound fallback while Markdown-only rendering is tested.
   registerAppResource(
     server,
     'a-xu-sticker-v4',
     WIDGET_URI,
     {
-      description: 'Fallback inline renderer for one small A-Xu sticker.'
+      description: 'Render one small A-Xu sticker inline.'
     },
     async () => ({
       contents: [{
@@ -44,7 +43,7 @@ export function createStickerServer() {
           },
           'openai/widgetPrefersBorder': false,
           'openai/widgetDescription':
-            'Fallback renderer for a single small, left-aligned A-Xu sticker on a transparent background.',
+            'A single small, left-aligned A-Xu sticker on a transparent background. The sticker is already visible; do not repeat it in Markdown or add its title, ID, URL, or technical details.',
           'openai/widgetCSP': {
             resource_domains: [APP_ORIGIN, 'https://raw.githubusercontent.com'],
             connect_domains: []
@@ -62,7 +61,7 @@ export function createStickerServer() {
     {
       title: '阿序的小表情',
       description:
-        'Find one A-Xu sticker by exact sticker_id from the live GitHub catalog. After this tool returns, send exactly one Markdown image using the returned title and image_url: ![title](image_url). Do not render or attach a widget. Do not repeat the sticker ID, raw URL, JSON, or technical details. Use list_stickers if you do not know the ID. This does not perform semantic search.',
+        'Find and render one A-Xu sticker by exact sticker_id from the live GitHub catalog. The attached inline UI renders the sticker. Do not repeat the image in Markdown, and do not repeat the sticker ID, raw URL, JSON, title, or technical details. Use list_stickers if you do not know the ID. This does not perform semantic search.',
       inputSchema: {
         sticker_id: z.string().regex(/^[0-9]{4}$/),
         size: z.number().int().min(120).max(160).default(140)
@@ -81,7 +80,12 @@ export function createStickerServer() {
         idempotentHint: true
       },
       _meta: {
-        securitySchemes: NO_AUTH
+        securitySchemes: NO_AUTH,
+        ui: {
+          resourceUri: WIDGET_URI,
+          visibility: ['model', 'app']
+        },
+        'openai/outputTemplate': WIDGET_URI
       }
     },
     async ({ sticker_id, size }) => {

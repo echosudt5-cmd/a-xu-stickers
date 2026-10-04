@@ -28,7 +28,7 @@ test('live catalog resolves exact IDs and rejects unavailable IDs/sizes', async 
   }
 });
 
-test('MCP keeps the v4 widget only as an unbound fallback and returns Markdown render data', async () => {
+test('MCP exposes the v4 inline widget and returns proxied render data', async () => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const server = createStickerServer();
   const client = new Client({ name: 'test', version: '1' });
@@ -38,10 +38,10 @@ test('MCP keeps the v4 widget only as an unbound fallback and returns Markdown r
   try {
     const { tools } = await client.listTools();
     const showSticker = tools.find(tool => tool.name === 'show_sticker');
-    assert.equal(showSticker._meta.ui, undefined);
-    assert.equal(showSticker._meta['openai/outputTemplate'], undefined);
-    assert.match(showSticker.description, /send exactly one Markdown image/);
-    assert.match(showSticker.description, /Do not render or attach a widget/);
+    assert.equal(showSticker._meta.ui.resourceUri, WIDGET_URI);
+    assert.equal(showSticker._meta['openai/outputTemplate'], WIDGET_URI);
+    assert.deepEqual(showSticker._meta.ui.visibility, ['model', 'app']);
+    assert.match(showSticker.description, /Do not repeat the image in Markdown/);
 
     const resource = await client.readResource({ uri: WIDGET_URI });
     assert.equal(resource.contents[0].mimeType, 'text/html;profile=mcp-app');
