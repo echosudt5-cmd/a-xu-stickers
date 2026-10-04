@@ -38,6 +38,15 @@ test('MCP keeps the v4 widget only as an unbound fallback and returns Markdown r
   try {
     const { tools } = await client.listTools();
     const showSticker = tools.find(tool => tool.name === 'show_sticker');
+    const inspectUserAgent = tools.find(
+      tool => tool.name === 'inspect_client_user_agent'
+    );
+    assert.ok(inspectUserAgent);
+    assert.equal(inspectUserAgent._meta.ui, undefined);
+    assert.equal(
+      inspectUserAgent._meta['openai/outputTemplate'],
+      undefined
+    );
     assert.equal(showSticker._meta.ui, undefined);
     assert.equal(showSticker._meta['openai/outputTemplate'], undefined);
     assert.match(showSticker.description, /send exactly one Markdown image/);
@@ -52,6 +61,32 @@ test('MCP keeps the v4 widget only as an unbound fallback and returns Markdown r
       [APP_ORIGIN, 'https://raw.githubusercontent.com']
     );
     assert.ok(resource.contents[0].text.includes('object-position: left center'));
+
+    const userAgent = 'ChatGPT-Test/1.0 (Android Mobile)';
+    const probe = await client.callTool({
+      name: 'inspect_client_user_agent',
+      arguments: {},
+      _meta: {
+        'openai/userAgent': userAgent
+      }
+    });
+    assert.deepEqual(probe.structuredContent, {
+      present: true,
+      user_agent: userAgent
+    });
+    assert.deepEqual(JSON.parse(probe.content[0].text), {
+      present: true,
+      user_agent: userAgent
+    });
+
+    const missingProbe = await client.callTool({
+      name: 'inspect_client_user_agent',
+      arguments: {}
+    });
+    assert.deepEqual(missingProbe.structuredContent, {
+      present: false,
+      user_agent: null
+    });
 
     for (const size of [120, 140, 160]) {
       const result = await client.callTool({
