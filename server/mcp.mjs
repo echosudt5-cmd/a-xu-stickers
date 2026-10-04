@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import {
   registerAppResource,
+  registerAppTool,
   RESOURCE_MIME_TYPE
 } from '@modelcontextprotocol/ext-apps/server';
 import { z } from 'zod';
@@ -202,7 +203,8 @@ export function createStickerServer() {
     }
   );
 
-  server.registerTool(
+  registerAppTool(
+    server,
     'show_sticker_mobile',
     {
       title: '阿序的小表情（移动端显示）',
