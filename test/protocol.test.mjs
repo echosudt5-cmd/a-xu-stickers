@@ -198,10 +198,11 @@ test('MCP routes desktop to Markdown and mobile or unknown to the widget tool', 
       arguments: { sticker_id: '0003' }
     });
     assert.equal(unknownRoute.structuredContent.client_kind, 'unknown');
-    assert.equal(unknownRoute.structuredContent.render_mode, 'widget');
+    assert.equal(unknownRoute.structuredContent.render_mode, 'markdown');
+    assert.equal(unknownRoute.structuredContent.next_tool, undefined);
     assert.equal(
-      unknownRoute.structuredContent.next_tool,
-      'show_sticker_mobile'
+      unknownRoute.structuredContent.image_url,
+      `${ASSET_BASE}stickers/0003.png`
     );
 
     const missing = await client.callTool({
