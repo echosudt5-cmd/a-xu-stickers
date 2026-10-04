@@ -111,6 +111,10 @@ test('HTTP serves repository PNGs directly with image-safe headers', async () =>
     assert.equal(response.headers.get('content-type'), 'image/png');
     assert.equal(response.headers.get('location'), null);
     assert.equal(response.headers.get('access-control-allow-origin'), '*');
+    assert.equal(
+      response.headers.get('cross-origin-resource-policy'),
+      'cross-origin'
+    );
     assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
     assert.match(
       response.headers.get('cache-control'),
@@ -127,6 +131,21 @@ test('HTTP serves repository PNGs directly with image-safe headers', async () =>
       [...bytes.subarray(0, 8)],
       [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
     );
+
+    const head = await fetch(
+      `http://127.0.0.1:${port}/stickers/0003.png`,
+      { method: 'HEAD', redirect: 'manual' }
+    );
+    assert.equal(head.status, 200);
+    assert.equal(head.headers.get('content-type'), 'image/png');
+    assert.equal(head.headers.get('location'), null);
+    assert.equal(head.headers.get('content-length'), String(bytes.byteLength));
+    assert.equal(head.headers.get('access-control-allow-origin'), '*');
+    assert.equal(
+      head.headers.get('cross-origin-resource-policy'),
+      'cross-origin'
+    );
+    assert.equal((await head.arrayBuffer()).byteLength, 0);
   } finally {
     await new Promise(resolve => httpServer.close(resolve));
   }

@@ -6,7 +6,7 @@ import { createStickerServer } from './mcp.mjs';
 
 const STICKER_DIRECTORY = new URL('../stickers/', import.meta.url);
 
-async function serveSticker(stickerId, res) {
+async function serveSticker(stickerId, res, headOnly = false) {
   const fileUrl = new URL(`${stickerId}.png`, STICKER_DIRECTORY);
 
   try {
@@ -16,8 +16,10 @@ async function serveSticker(stickerId, res) {
       'content-length': String(bytes.byteLength),
       'cache-control': 'public, max-age=86400',
       'access-control-allow-origin': '*',
+      'cross-origin-resource-policy': 'cross-origin',
       'x-content-type-options': 'nosniff'
-    }).end(bytes);
+    });
+    res.end(headOnly ? undefined : bytes);
   } catch (error) {
     console.error('Sticker read failed', {
       stickerId,
@@ -39,8 +41,8 @@ export function createHttpServer() {
 
     const stickerMatch = path.match(/^\/stickers\/([0-9]{4})\.png$/);
     if (stickerMatch) {
-      if (req.method !== 'GET') { res.writeHead(405, { Allow: 'GET' }).end('Method not allowed'); return; }
-      await serveSticker(stickerMatch[1], res);
+      if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405, { Allow: 'GET, HEAD' }).end('Method not allowed'); return; }
+      await serveSticker(stickerMatch[1], res, req.method === 'HEAD');
       return;
     }
 
