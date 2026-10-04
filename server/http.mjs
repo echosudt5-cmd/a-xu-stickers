@@ -43,7 +43,7 @@ export function createHttpServer() {
         'cache-control': 'no-store'
       }).end(JSON.stringify({
         ok: true,
-        version: '0.7.2',
+        version: '0.7.3',
         rendering: 'adaptive-user-agent',
         branch: 'experiment/adaptive-rendering'
       }));
