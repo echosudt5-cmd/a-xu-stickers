@@ -31,7 +31,7 @@ export function classifyClient(userAgent) {
 export function createStickerServer() {
   const server = new McpServer({
     name: 'a-xu-stickers',
-    version: '0.7.0'
+    version: '0.7.1'
   });
 
   // Retained as an unbound fallback while Markdown-only rendering is tested.
