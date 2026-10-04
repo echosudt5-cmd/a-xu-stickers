@@ -70,7 +70,7 @@ test('MCP keeps the v4 widget only as an unbound fallback and returns Markdown r
       );
       assert.equal(
         result.structuredContent.image_url,
-        `${APP_ORIGIN}/stickers/0003.png`
+        `${ASSET_BASE}stickers/0003.png`
       );
     }
 
@@ -171,7 +171,7 @@ test('HTTP transport supports real MCP initialize and sticker invocation', async
     assert.equal(result.structuredContent.size, 140);
     assert.equal(
       result.structuredContent.image_url,
-      `${APP_ORIGIN}/stickers/0024.png`
+      `${ASSET_BASE}stickers/0024.png`
     );
   } finally {
     await client.close();

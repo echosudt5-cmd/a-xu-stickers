@@ -14,7 +14,7 @@ const NO_AUTH = [{ type: 'noauth' }];
 export function createStickerServer() {
   const server = new McpServer({
     name: 'a-xu-stickers',
-    version: '0.6.0'
+    version: '0.6.1'
   });
 
   // Retained as an unbound fallback while Markdown-only rendering is tested.
@@ -86,11 +86,7 @@ export function createStickerServer() {
     },
     async ({ sticker_id, size }) => {
       try {
-        const sticker = await getSticker(sticker_id, size);
-        const renderData = {
-          ...sticker,
-          image_url: `${APP_ORIGIN}/stickers/${sticker.sticker_id}.png`
-        };
+        const renderData = await getSticker(sticker_id, size);
 
         return {
           content: [{
