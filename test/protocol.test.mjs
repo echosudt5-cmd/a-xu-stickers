@@ -175,7 +175,7 @@ test('HTTP transport returns the PNG resource link', async () => {
       type: 'resource_link',
       uri: `${ASSET_BASE}stickers/0024.png`,
       name: '0024.png',
-      title: '好棒',
+      title: '收到',
       mimeType: 'image/png'
     });
   } finally {
