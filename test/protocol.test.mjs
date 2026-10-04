@@ -55,7 +55,7 @@ test('client classifier separates the four observed ChatGPT surfaces', () => {
   assert.equal(classifyClient('unexpected-client'), 'unknown');
 });
 
-test('MCP uses one adaptive UI-bound tool for desktop and mobile', async () => {
+test('MCP routes desktop to Markdown and mobile to a nonempty widget result', async () => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const server = createStickerServer();
   const client = new Client({ name: 'test', version: '1' });
@@ -71,19 +71,31 @@ test('MCP uses one adaptive UI-bound tool for desktop and mobile', async () => {
     const inspectUserAgent = tools.find(
       tool => tool.name === 'inspect_client_user_agent'
     );
-    assert.equal(mobileSticker, undefined);
+    assert.ok(mobileSticker);
     assert.ok(inspectUserAgent);
     assert.equal(inspectUserAgent._meta.ui, undefined);
     assert.equal(
       inspectUserAgent._meta['openai/outputTemplate'],
       undefined
     );
-    assert.equal(showSticker._meta.ui.resourceUri, WIDGET_URI);
-    assert.deepEqual(showSticker._meta.ui.visibility, ['model', 'app']);
-    assert.equal(showSticker._meta['openai/outputTemplate'], WIDGET_URI);
-    assert.match(showSticker.description, /single adaptive tool call/);
-    assert.match(showSticker.description, /render_mode=markdown/);
-    assert.match(showSticker.description, /render_mode=widget/);
+    assert.equal(showSticker._meta.ui, undefined);
+    assert.equal(showSticker._meta['openai/outputTemplate'], undefined);
+    assert.equal(mobileSticker._meta.ui.resourceUri, WIDGET_URI);
+    assert.deepEqual(
+      mobileSticker._meta.ui.visibility,
+      ['model', 'app']
+    );
+    assert.equal(mobileSticker._meta['openai/outputTemplate'], WIDGET_URI);
+    assert.match(showSticker.description, /platform router/);
+    assert.match(showSticker.description, /Always call this tool first/);
+    assert.match(
+      showSticker.description,
+      /Produce no user-visible text before or between the two tool calls/
+    );
+    assert.match(
+      mobileSticker.description,
+      /before composing any user-visible text/
+    );
 
     const resource = await client.readResource({ uri: WIDGET_URI });
     assert.equal(resource.contents[0].mimeType, 'text/html;profile=mcp-app');
@@ -154,7 +166,7 @@ test('MCP uses one adaptive UI-bound tool for desktop and mobile', async () => {
       );
     }
 
-    const mobileResult = await client.callTool({
+    const mobileRoute = await client.callTool({
       name: 'show_sticker',
       arguments: { sticker_id: '0003', size: 140 },
       _meta: {
@@ -162,29 +174,54 @@ test('MCP uses one adaptive UI-bound tool for desktop and mobile', async () => {
           'ChatGPT/1.2026.265 (Android 12; Mi 10 Pro; build 2626526)'
       }
     });
-    assert.deepEqual(mobileResult.structuredContent, {
+    assert.deepEqual(mobileRoute.structuredContent, {
       sticker_id: '0003',
-      title: mobileResult.structuredContent.title,
-      image_url: `${ASSET_BASE}stickers/0003.png`,
+      title: mobileRoute.structuredContent.title,
       size: 140,
       render_mode: 'widget',
-      client_kind: 'mobile'
+      client_kind: 'mobile',
+      requires_follow_up: true,
+      next_tool: 'show_sticker_mobile',
+      next_tool_arguments: {
+        sticker_id: '0003',
+        size: 140
+      }
     });
-    assert.equal(mobileResult.content.length, 1);
-    assert.deepEqual(
-      JSON.parse(mobileResult.content[0].text),
-      mobileResult.structuredContent
+    assert.equal(mobileRoute.structuredContent.image_url, undefined);
+    assert.match(mobileRoute.content[0].text, /MANDATORY CONTINUATION/);
+    assert.match(
+      mobileRoute.content[0].text,
+      /Produce no user-visible text before or between tool calls/
+    );
+    assert.match(
+      mobileRoute.content[0].text,
+      /widget is emitted before the prose/
     );
 
-    const unknownResult = await client.callTool({
+    const mobileRender = await client.callTool({
+      name: mobileRoute.structuredContent.next_tool,
+      arguments: { sticker_id: '0003', size: 140 }
+    });
+    assert.equal(mobileRender.structuredContent.sticker_id, '0003');
+    assert.equal(
+      mobileRender.structuredContent.image_url,
+      `${ASSET_BASE}stickers/0003.png`
+    );
+    assert.equal(mobileRender.content.length, 1);
+    assert.deepEqual(
+      JSON.parse(mobileRender.content[0].text),
+      mobileRender.structuredContent
+    );
+
+    const unknownRoute = await client.callTool({
       name: 'show_sticker',
       arguments: { sticker_id: '0003' }
     });
-    assert.equal(unknownResult.structuredContent.client_kind, 'unknown');
-    assert.equal(unknownResult.structuredContent.render_mode, 'markdown');
-    assert.match(unknownResult.content[0].text, /exactly one Markdown image/);
+    assert.equal(unknownRoute.structuredContent.client_kind, 'unknown');
+    assert.equal(unknownRoute.structuredContent.render_mode, 'markdown');
+    assert.equal(unknownRoute.structuredContent.next_tool, undefined);
     assert.equal(
-      unknownResult.structuredContent.image_url,
+      unknownRoute.structuredContent.image_url,
       `${ASSET_BASE}stickers/0003.png`
     );
 

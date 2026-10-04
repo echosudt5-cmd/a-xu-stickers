@@ -8,7 +8,7 @@ import {
 import { z } from 'zod';
 import { getSticker, listStickers } from './catalog.mjs';
 
-export const WIDGET_URI = 'ui://a-xu/sticker-v5.html';
+export const WIDGET_URI = 'ui://a-xu/sticker-v6.html';
 export const APP_ORIGIN = 'https://a-xu-stickers.onrender.com';
 const NO_AUTH = [{ type: 'noauth' }];
 
@@ -31,16 +31,16 @@ export function classifyClient(userAgent) {
 export function createStickerServer() {
   const server = new McpServer({
     name: 'a-xu-stickers',
-    version: '0.8.1'
+    version: '0.9.0'
   });
 
+  // The resource is bound only to the dedicated mobile renderer.
   registerAppResource(
     server,
-    'a-xu-sticker-v5',
+    'a-xu-sticker-v6',
     WIDGET_URI,
     {
-      description:
-        'Adaptive inline renderer: visible on mobile and self-dismissed on desktop.'
+      description: 'Fallback inline renderer for one small A-Xu sticker.'
     },
     async () => ({
       contents: [{
@@ -61,7 +61,7 @@ export function createStickerServer() {
           },
           'openai/widgetPrefersBorder': false,
           'openai/widgetDescription':
-            'Renders one small, left-aligned A-Xu sticker on mobile and stays hidden when Markdown is used.',
+            'Fallback renderer for a single small, left-aligned A-Xu sticker on a transparent background.',
           'openai/widgetCSP': {
             resource_domains: [APP_ORIGIN, 'https://raw.githubusercontent.com'],
             connect_domains: []
@@ -117,13 +117,132 @@ export function createStickerServer() {
     }
   );
 
-  registerAppTool(
-    server,
+  server.registerTool(
     'show_sticker',
     {
       title: '阿序的小表情',
       description:
-        'Show one A-Xu sticker with a single adaptive tool call. The tool chooses render_mode from the client hint. If render_mode=markdown, send exactly one Markdown image using title and image_url; the attached UI dismisses itself. If render_mode=widget, the attached inline UI already renders the sticker, so do not repeat it in Markdown. Do not expose the ID, URL, JSON, render mode, or technical details. Use list_stickers if you do not know the ID.',
+        'Primary sticker tool and platform router. Always call this tool first. On desktop it returns render_mode=markdown: send exactly one Markdown image using title and image_url. On mobile it returns render_mode=widget and requires_follow_up=true: this is never a completed response. Produce no user-visible text before or between the two tool calls; immediately call next_tool with next_tool_arguments in the same turn, wait for that tool to finish, and only then compose any final prose so the widget is emitted first. On an unknown client, use the desktop Markdown route. Never call show_sticker_mobile unless this tool instructs you to do so. Use list_stickers if you do not know the ID.',
+      inputSchema: {
+        sticker_id: z.string().regex(/^[0-9]{4}$/),
+        size: z.number().int().min(120).max(160).default(140)
+      },
+      outputSchema: {
+        sticker_id: z.string(),
+        title: z.string(),
+        size: z.number(),
+        render_mode: z.enum(['markdown', 'widget']),
+        client_kind: z.enum(['desktop', 'mobile', 'unknown']),
+        image_url: z.string().url().optional(),
+        requires_follow_up: z.boolean().optional(),
+        next_tool: z.string().optional(),
+        next_tool_arguments: z.object({
+          sticker_id: z.string(),
+          size: z.number()
+        }).optional()
+      },
+      securitySchemes: NO_AUTH,
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: true,
+        idempotentHint: true
+      },
+      _meta: {
+        securitySchemes: NO_AUTH
+      }
+    },
+    async ({ sticker_id, size }, extra) => {
+      try {
+        const renderData = await getSticker(sticker_id, size);
+        const userAgent = extra?._meta?.['openai/userAgent'];
+        const clientKind = classifyClient(userAgent);
+        const route = clientKind === 'mobile'
+          ? {
+              render_mode: 'widget',
+              tool_name: 'show_sticker_mobile'
+            }
+          : {
+              render_mode: 'markdown',
+              tool_name: 'show_sticker'
+            };
+
+        console.log(
+          'sticker route:',
+          JSON.stringify({
+            user_agent:
+              typeof userAgent === 'string' ? userAgent : null,
+            client_kind: clientKind,
+            ...route
+          })
+        );
+
+        if (clientKind !== 'mobile') {
+          const result = {
+            ...renderData,
+            render_mode: 'markdown',
+            client_kind: clientKind
+          };
+
+          return {
+            content: [{
+              type: 'text',
+              text:
+                'Desktop surface detected. Send exactly one Markdown image ' +
+                'using structuredContent.title and structuredContent.image_url. ' +
+                'Do not call show_sticker_mobile and do not expose technical details.'
+            }],
+            structuredContent: result
+          };
+        }
+
+        const result = {
+          sticker_id: renderData.sticker_id,
+          title: renderData.title,
+          size: renderData.size,
+          render_mode: 'widget',
+          client_kind: clientKind,
+          requires_follow_up: true,
+          next_tool: 'show_sticker_mobile',
+          next_tool_arguments: {
+            sticker_id: renderData.sticker_id,
+            size: renderData.size
+          }
+        };
+
+        return {
+          content: [{
+            type: 'text',
+            text:
+              'MANDATORY CONTINUATION: this result is not a completed ' +
+              'response. Produce no user-visible text before or between tool ' +
+              'calls. Immediately call show_sticker_mobile using ' +
+              'structuredContent.next_tool_arguments, wait for it to finish, ' +
+              'and only then compose any final prose so the widget is emitted ' +
+              'before the prose. Only that second tool call completes the ' +
+              'request. Never send Markdown, a URL, JSON, or routing details.'
+          }],
+          structuredContent: result
+        };
+      } catch (error) {
+        return {
+          isError: true,
+          content: [{
+            type: 'text',
+            text: error.message
+          }]
+        };
+      }
+    }
+  );
+
+  registerAppTool(
+    server,
+    'show_sticker_mobile',
+    {
+      title: '阿序的小表情',
+      description:
+        'Widget renderer used only after show_sticker returns render_mode=widget and next_tool=show_sticker_mobile. Call it before composing any user-visible text and wait for it to finish, so the attached inline UI is emitted before any final prose. The UI already renders the sticker. After calling this tool, do not repeat the image in Markdown and do not mention IDs, URLs, routing, or technical details.',
       inputSchema: {
         sticker_id: z.string().regex(/^[0-9]{4}$/),
         size: z.number().int().min(120).max(160).default(140)
@@ -132,9 +251,7 @@ export function createStickerServer() {
         sticker_id: z.string(),
         title: z.string(),
         image_url: z.string().url(),
-        size: z.number(),
-        render_mode: z.enum(['markdown', 'widget']),
-        client_kind: z.enum(['desktop', 'mobile', 'unknown'])
+        size: z.number()
       },
       securitySchemes: NO_AUTH,
       annotations: {
@@ -154,44 +271,15 @@ export function createStickerServer() {
         'openai/toolInvocation/invoked': '小表情来啦'
       }
     },
-    async ({ sticker_id, size }, extra) => {
+    async ({ sticker_id, size }) => {
       try {
-        const sticker = await getSticker(sticker_id, size);
-        const userAgent = extra?._meta?.['openai/userAgent'];
-        const clientKind = classifyClient(userAgent);
-        const renderMode =
-          clientKind === 'mobile' ? 'widget' : 'markdown';
-        const result = {
-          ...sticker,
-          render_mode: renderMode,
-          client_kind: clientKind
-        };
-
-        console.log(
-          'sticker route:',
-          JSON.stringify({
-            user_agent:
-              typeof userAgent === 'string' ? userAgent : null,
-            client_kind: clientKind,
-            render_mode: renderMode,
-            tool_name: 'show_sticker'
-          })
-        );
-
+        const renderData = await getSticker(sticker_id, size);
         return {
-          content: renderMode === 'markdown'
-            ? [{
-                type: 'text',
-                text:
-                  'Send exactly one Markdown image using ' +
-                  'structuredContent.title and structuredContent.image_url. ' +
-                  'Do not describe the routing or call another sticker tool.'
-              }]
-            : [{
-                type: 'text',
-                text: JSON.stringify(result)
-              }],
-          structuredContent: result
+          content: [{
+            type: 'text',
+            text: JSON.stringify(renderData)
+          }],
+          structuredContent: renderData
         };
       } catch (error) {
         return {
