@@ -37,7 +37,18 @@ async function serveSticker(stickerId, res, headOnly = false) {
 export function createHttpServer() {
   return createServer(async (req, res) => {
     const path = new URL(req.url || '/', 'http://localhost').pathname;
-    if (path === '/health' && req.method === 'GET') { res.writeHead(200, { 'content-type': 'application/json' }).end('{"ok":true}'); return; }
+    if (path === '/health' && req.method === 'GET') {
+      res.writeHead(200, {
+        'content-type': 'application/json; charset=utf-8',
+        'cache-control': 'no-store'
+      }).end(JSON.stringify({
+        ok: true,
+        version: '0.7.0',
+        rendering: 'adaptive-user-agent',
+        branch: 'experiment/adaptive-rendering'
+      }));
+      return;
+    }
 
     const stickerMatch = path.match(/^\/stickers\/([0-9]{4})\.png$/);
     if (stickerMatch) {
