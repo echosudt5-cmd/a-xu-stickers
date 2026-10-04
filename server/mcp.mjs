@@ -152,6 +152,25 @@ export function createStickerServer() {
         const renderData = await getSticker(sticker_id, size);
         const userAgent = extra?._meta?.['openai/userAgent'];
         const clientKind = classifyClient(userAgent);
+        const route = clientKind === 'desktop'
+          ? {
+              render_mode: 'markdown',
+              tool_name: 'show_sticker'
+            }
+          : {
+              render_mode: 'widget',
+              tool_name: 'show_sticker_mobile'
+            };
+
+        console.log(
+          'sticker route:',
+          JSON.stringify({
+            user_agent:
+              typeof userAgent === 'string' ? userAgent : null,
+            client_kind: clientKind,
+            ...route
+          })
+        );
 
         if (clientKind === 'desktop') {
           const result = {
