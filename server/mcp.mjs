@@ -31,7 +31,7 @@ export function classifyClient(userAgent) {
 export function createStickerServer() {
   const server = new McpServer({
     name: 'a-xu-stickers',
-    version: '0.7.2'
+    version: '0.7.3'
   });
 
   // Retained as an unbound fallback while Markdown-only rendering is tested.
@@ -273,17 +273,9 @@ export function createStickerServer() {
     },
     async ({ sticker_id, size }) => {
       try {
-        const sticker = await getSticker(sticker_id, size);
-
         return {
-          // Keep a normal tool-result content part, matching the earlier
-          // single-widget version. Some ChatGPT clients anchor UI-only
-          // results after the completed assistant message.
-          content: [{
-            type: 'text',
-            text: JSON.stringify(sticker)
-          }],
-          structuredContent: sticker
+          content: [],
+          structuredContent: await getSticker(sticker_id, size)
         };
       } catch (error) {
         return {
