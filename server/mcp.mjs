@@ -14,7 +14,7 @@ const NO_AUTH = [{ type: 'noauth' }];
 export function createStickerServer() {
   const server = new McpServer({
     name: 'a-xu-stickers',
-    version: '0.6.1'
+    version: '0.6.2'
   });
 
   // Retained as an unbound fallback while Markdown-only rendering is tested.
@@ -55,6 +55,49 @@ export function createStickerServer() {
         }
       }]
     })
+  );
+
+  server.registerTool(
+    'inspect_client_user_agent',
+    {
+      title: 'Inspect client user agent',
+      description:
+        'Diagnostic-only tool. Return the exact optional openai/userAgent hint attached by the current ChatGPT client. Do not infer, normalize, or rewrite the value, and do not call any sticker-rendering tool.',
+      inputSchema: {},
+      outputSchema: {
+        present: z.boolean(),
+        user_agent: z.string().nullable()
+      },
+      securitySchemes: NO_AUTH,
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: false,
+        idempotentHint: true
+      },
+      _meta: {
+        securitySchemes: NO_AUTH
+      }
+    },
+    async (_args, extra) => {
+      const rawUserAgent = extra?._meta?.['openai/userAgent'];
+      const userAgent =
+        typeof rawUserAgent === 'string' ? rawUserAgent : null;
+      const result = {
+        present: userAgent !== null,
+        user_agent: userAgent
+      };
+
+      console.log('openai userAgent:', userAgent ?? '<missing>');
+
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify(result)
+        }],
+        structuredContent: result
+      };
+    }
   );
 
   server.registerTool(
