@@ -170,7 +170,11 @@ test('MCP uses one adaptive UI-bound tool for desktop and mobile', async () => {
       render_mode: 'widget',
       client_kind: 'mobile'
     });
-    assert.deepEqual(mobileResult.content, []);
+    assert.equal(mobileResult.content.length, 1);
+    assert.deepEqual(
+      JSON.parse(mobileResult.content[0].text),
+      mobileResult.structuredContent
+    );
 
     const unknownResult = await client.callTool({
       name: 'show_sticker',

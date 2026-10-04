@@ -31,7 +31,7 @@ export function classifyClient(userAgent) {
 export function createStickerServer() {
   const server = new McpServer({
     name: 'a-xu-stickers',
-    version: '0.8.0'
+    version: '0.8.1'
   });
 
   registerAppResource(
@@ -187,7 +187,10 @@ export function createStickerServer() {
                   'structuredContent.title and structuredContent.image_url. ' +
                   'Do not describe the routing or call another sticker tool.'
               }]
-            : [],
+            : [{
+                type: 'text',
+                text: JSON.stringify(result)
+              }],
           structuredContent: result
         };
       } catch (error) {
