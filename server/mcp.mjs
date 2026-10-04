@@ -31,7 +31,7 @@ export function classifyClient(userAgent) {
 export function createStickerServer() {
   const server = new McpServer({
     name: 'a-xu-stickers',
-    version: '0.10.0'
+    version: '0.10.1'
   });
 
   registerAppResource(
@@ -123,7 +123,7 @@ export function createStickerServer() {
     {
       title: '阿序的小表情',
       description:
-        'Show one A-Xu sticker with a single adaptive tool call. The tool chooses render_mode from the client hint. If render_mode=markdown, send exactly one Markdown image using title and image_url; the attached UI dismisses itself. If render_mode=widget, the attached inline UI already renders the sticker, so do not repeat it in Markdown. Do not expose the ID, URL, JSON, render mode, or technical details. Use list_stickers if you do not know the ID.',
+        'Show one A-Xu sticker with a single adaptive tool call. Call this tool before producing any user-visible prose. Wait for the tool result and attached UI to complete, and only then compose the final assistant text so the sticker component precedes the prose. The tool chooses render_mode from the client hint. If render_mode=markdown, send exactly one Markdown image using title and image_url after the tool completes; the attached UI dismisses itself. If render_mode=widget, the attached inline UI already renders the sticker, so do not repeat it in Markdown. Do not expose the ID, URL, JSON, render mode, or technical details. Use list_stickers if you do not know the ID.',
       inputSchema: {
         sticker_id: z.string().regex(/^[0-9]{4}$/),
         size: z.number().int().min(120).max(160).default(140)

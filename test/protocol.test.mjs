@@ -85,6 +85,14 @@ test('MCP uses one adaptive standard-only UI-bound tool', async () => {
       undefined
     );
     assert.match(showSticker.description, /single adaptive tool call/);
+    assert.match(
+      showSticker.description,
+      /before producing any user-visible prose/
+    );
+    assert.match(
+      showSticker.description,
+      /only then compose the final assistant text/
+    );
     assert.match(showSticker.description, /render_mode=markdown/);
     assert.match(showSticker.description, /render_mode=widget/);
 
