@@ -207,7 +207,12 @@ test('MCP routes desktop or unknown to Markdown and mobile to the widget tool', 
       mobileRender.structuredContent.image_url,
       `${ASSET_BASE}stickers/0003.png`
     );
-    assert.deepEqual(mobileRender.content, []);
+    assert.equal(mobileRender.content.length, 1);
+    assert.equal(mobileRender.content[0].type, 'text');
+    assert.deepEqual(
+      JSON.parse(mobileRender.content[0].text),
+      mobileRender.structuredContent
+    );
 
     const unknownRoute = await client.callTool({
       name: 'show_sticker',
