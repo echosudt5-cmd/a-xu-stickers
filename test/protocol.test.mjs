@@ -2,7 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { createStickerServer, WIDGET_URI, APP_ORIGIN } from '../server/mcp.mjs';
+import {
+  createStickerServer,
+  WIDGET_URI,
+  APP_ORIGIN,
+  classifyClient
+} from '../server/mcp.mjs';
 import { getSticker, listStickers, ASSET_BASE } from '../server/catalog.mjs';
 import { createHttpServer } from '../server/http.mjs';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
@@ -28,7 +33,29 @@ test('live catalog resolves exact IDs and rejects unavailable IDs/sizes', async 
   }
 });
 
-test('MCP keeps the v4 widget only as an unbound fallback and returns Markdown render data', async () => {
+test('client classifier separates the four observed ChatGPT surfaces', () => {
+  const windowsApp =
+    'CodexBrowser Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+    'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36';
+  const desktopWeb =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+    'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36';
+  const androidApp =
+    'ChatGPT/1.2026.265 (Android 12; Mi 10 Pro; build 2626526)';
+  const androidWeb =
+    'Mozilla/5.0 (Linux; Android 12; Mi 10 Pro Build/XiaomiMi 10 Pro;) ' +
+    'AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 ' +
+    'Chrome/114.0.5735.196 Mobile Safari/537.36';
+
+  assert.equal(classifyClient(windowsApp), 'desktop');
+  assert.equal(classifyClient(desktopWeb), 'desktop');
+  assert.equal(classifyClient(androidApp), 'mobile');
+  assert.equal(classifyClient(androidWeb), 'mobile');
+  assert.equal(classifyClient(undefined), 'unknown');
+  assert.equal(classifyClient('unexpected-client'), 'unknown');
+});
+
+test('MCP routes desktop to Markdown and mobile or unknown to the widget tool', async () => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const server = createStickerServer();
   const client = new Client({ name: 'test', version: '1' });
@@ -38,9 +65,13 @@ test('MCP keeps the v4 widget only as an unbound fallback and returns Markdown r
   try {
     const { tools } = await client.listTools();
     const showSticker = tools.find(tool => tool.name === 'show_sticker');
+    const mobileSticker = tools.find(
+      tool => tool.name === 'show_sticker_mobile'
+    );
     const inspectUserAgent = tools.find(
       tool => tool.name === 'inspect_client_user_agent'
     );
+    assert.ok(mobileSticker);
     assert.ok(inspectUserAgent);
     assert.equal(inspectUserAgent._meta.ui, undefined);
     assert.equal(
@@ -49,8 +80,14 @@ test('MCP keeps the v4 widget only as an unbound fallback and returns Markdown r
     );
     assert.equal(showSticker._meta.ui, undefined);
     assert.equal(showSticker._meta['openai/outputTemplate'], undefined);
-    assert.match(showSticker.description, /send exactly one Markdown image/);
-    assert.match(showSticker.description, /Do not render or attach a widget/);
+    assert.equal(mobileSticker._meta.ui.resourceUri, WIDGET_URI);
+    assert.deepEqual(
+      mobileSticker._meta.ui.visibility,
+      ['model', 'app']
+    );
+    assert.equal(mobileSticker._meta['openai/outputTemplate'], WIDGET_URI);
+    assert.match(showSticker.description, /platform router/);
+    assert.match(showSticker.description, /Always call this tool first/);
 
     const resource = await client.readResource({ uri: WIDGET_URI });
     assert.equal(resource.contents[0].mimeType, 'text/html;profile=mcp-app');
@@ -88,26 +125,79 @@ test('MCP keeps the v4 widget only as an unbound fallback and returns Markdown r
       user_agent: null
     });
 
+    const desktopUserAgent =
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
+
     for (const size of [120, 140, 160]) {
       const result = await client.callTool({
         name: 'show_sticker',
-        arguments: { sticker_id: '0003', size }
+        arguments: { sticker_id: '0003', size },
+        _meta: {
+          'openai/userAgent': desktopUserAgent
+        }
       });
       assert.deepEqual(
         Object.keys(result.structuredContent).sort(),
-        ['image_url', 'size', 'sticker_id', 'title']
+        [
+          'client_kind',
+          'image_url',
+          'render_mode',
+          'size',
+          'sticker_id',
+          'title'
+        ]
       );
       assert.equal(result.structuredContent.sticker_id, '0003');
       assert.equal(result.structuredContent.size, size);
-      assert.equal(
-        JSON.parse(result.content[0].text).image_url,
-        result.structuredContent.image_url
-      );
+      assert.equal(result.structuredContent.client_kind, 'desktop');
+      assert.equal(result.structuredContent.render_mode, 'markdown');
+      assert.match(result.content[0].text, /exactly one Markdown image/);
       assert.equal(
         result.structuredContent.image_url,
         `${ASSET_BASE}stickers/0003.png`
       );
     }
+
+    const mobileRoute = await client.callTool({
+      name: 'show_sticker',
+      arguments: { sticker_id: '0003', size: 140 },
+      _meta: {
+        'openai/userAgent':
+          'ChatGPT/1.2026.265 (Android 12; Mi 10 Pro; build 2626526)'
+      }
+    });
+    assert.deepEqual(mobileRoute.structuredContent, {
+      sticker_id: '0003',
+      title: mobileRoute.structuredContent.title,
+      size: 140,
+      render_mode: 'widget',
+      client_kind: 'mobile',
+      next_tool: 'show_sticker_mobile'
+    });
+    assert.equal(mobileRoute.structuredContent.image_url, undefined);
+    assert.match(mobileRoute.content[0].text, /Immediately call/);
+
+    const mobileRender = await client.callTool({
+      name: mobileRoute.structuredContent.next_tool,
+      arguments: { sticker_id: '0003', size: 140 }
+    });
+    assert.equal(mobileRender.structuredContent.sticker_id, '0003');
+    assert.equal(
+      mobileRender.structuredContent.image_url,
+      `${ASSET_BASE}stickers/0003.png`
+    );
+    assert.deepEqual(mobileRender.content, []);
+
+    const unknownRoute = await client.callTool({
+      name: 'show_sticker',
+      arguments: { sticker_id: '0003' }
+    });
+    assert.equal(unknownRoute.structuredContent.client_kind, 'unknown');
+    assert.equal(unknownRoute.structuredContent.render_mode, 'widget');
+    assert.equal(
+      unknownRoute.structuredContent.next_tool,
+      'show_sticker_mobile'
+    );
 
     const missing = await client.callTool({
       name: 'show_sticker',
