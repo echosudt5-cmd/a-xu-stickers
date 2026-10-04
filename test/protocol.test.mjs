@@ -28,7 +28,7 @@ test('live catalog resolves exact IDs and rejects unavailable IDs/sizes', async 
   }
 });
 
-test('MCP exposes the v4 inline widget and returns proxied render data', async () => {
+test('MCP keeps the v4 widget only as an unbound fallback and returns Markdown render data', async () => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const server = createStickerServer();
   const client = new Client({ name: 'test', version: '1' });
@@ -38,10 +38,10 @@ test('MCP exposes the v4 inline widget and returns proxied render data', async (
   try {
     const { tools } = await client.listTools();
     const showSticker = tools.find(tool => tool.name === 'show_sticker');
-    assert.equal(showSticker._meta.ui.resourceUri, WIDGET_URI);
-    assert.equal(showSticker._meta['openai/outputTemplate'], WIDGET_URI);
-    assert.deepEqual(showSticker._meta.ui.visibility, ['model', 'app']);
-    assert.match(showSticker.description, /Do not repeat the image in Markdown/);
+    assert.equal(showSticker._meta.ui, undefined);
+    assert.equal(showSticker._meta['openai/outputTemplate'], undefined);
+    assert.match(showSticker.description, /send exactly one Markdown image/);
+    assert.match(showSticker.description, /Do not render or attach a widget/);
 
     const resource = await client.readResource({ uri: WIDGET_URI });
     assert.equal(resource.contents[0].mimeType, 'text/html;profile=mcp-app');
@@ -94,6 +94,41 @@ test('MCP exposes the v4 inline widget and returns proxied render data', async (
   } finally {
     await client.close();
     await server.close();
+  }
+});
+
+test('HTTP serves repository PNGs directly with image-safe headers', async () => {
+  const httpServer = createHttpServer();
+  await new Promise(resolve => httpServer.listen(0, '127.0.0.1', resolve));
+  const port = httpServer.address().port;
+
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:${port}/stickers/0003.png`,
+      { redirect: 'manual' }
+    );
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('content-type'), 'image/png');
+    assert.equal(response.headers.get('location'), null);
+    assert.equal(response.headers.get('access-control-allow-origin'), '*');
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+    assert.match(
+      response.headers.get('cache-control'),
+      /^public, max-age=86400/
+    );
+
+    const bytes = Buffer.from(await response.arrayBuffer());
+    assert.ok(bytes.byteLength > 100);
+    assert.equal(
+      Number(response.headers.get('content-length')),
+      bytes.byteLength
+    );
+    assert.deepEqual(
+      [...bytes.subarray(0, 8)],
+      [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
+    );
+  } finally {
+    await new Promise(resolve => httpServer.close(resolve));
   }
 });
 

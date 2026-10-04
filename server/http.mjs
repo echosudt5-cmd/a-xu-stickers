@@ -1,45 +1,34 @@
+import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createStickerServer } from './mcp.mjs';
-import { ASSET_BASE } from './catalog.mjs';
 
-const MAX_STICKER_BYTES = 5_000_000;
+const STICKER_DIRECTORY = new URL('../stickers/', import.meta.url);
 
 async function serveSticker(stickerId, res) {
+  const fileUrl = new URL(`${stickerId}.png`, STICKER_DIRECTORY);
+
   try {
-    const response = await fetch(`${ASSET_BASE}stickers/${stickerId}.png`, {
-      headers: { accept: 'image/png' },
-      cache: 'no-store',
-      signal: AbortSignal.timeout(10_000)
-    });
-    if (!response.ok) {
-      res.writeHead(response.status === 404 ? 404 : 502).end('Sticker unavailable');
-      return;
-    }
-
-    const contentLength = Number(response.headers.get('content-length') || 0);
-    if (contentLength > MAX_STICKER_BYTES) {
-      res.writeHead(502).end('Sticker too large');
-      return;
-    }
-
-    const bytes = Buffer.from(await response.arrayBuffer());
-    if (bytes.byteLength > MAX_STICKER_BYTES) {
-      res.writeHead(502).end('Sticker too large');
-      return;
-    }
-
+    const bytes = await readFile(fileUrl);
     res.writeHead(200, {
       'content-type': 'image/png',
       'content-length': String(bytes.byteLength),
-      'cache-control': 'public, max-age=86400, stale-while-revalidate=604800',
+      'cache-control': 'public, max-age=86400',
       'access-control-allow-origin': '*',
       'x-content-type-options': 'nosniff'
     }).end(bytes);
   } catch (error) {
-    console.error(`Sticker proxy failed for ${stickerId}: ${error.message}`);
-    if (!res.headersSent) res.writeHead(502).end('Sticker unavailable');
+    console.error('Sticker read failed', {
+      stickerId,
+      filePath: fileURLToPath(fileUrl),
+      error
+    });
+    const notFound = error?.code === 'ENOENT';
+    res.writeHead(notFound ? 404 : 500, {
+      'content-type': 'text/plain; charset=utf-8',
+      'x-content-type-options': 'nosniff'
+    }).end(notFound ? 'Sticker not found' : 'Internal server error');
   }
 }
 
