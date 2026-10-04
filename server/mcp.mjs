@@ -238,7 +238,7 @@ export function createStickerServer() {
     server,
     'show_sticker_mobile',
     {
-      title: '阿序的小表情（移动端显示）',
+      title: '阿序的小表情',
       description:
         'Widget renderer used only after show_sticker returns render_mode=widget and next_tool=show_sticker_mobile. The attached inline UI already renders the sticker. After calling this tool, do not repeat the image in Markdown and do not mention IDs, URLs, routing, or technical details.',
       inputSchema: {
