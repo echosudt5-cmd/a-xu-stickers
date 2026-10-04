@@ -160,7 +160,7 @@ test('MCP routes desktop to Markdown and mobile or unknown to the widget tool', 
 
     const mobileRoute = await client.callTool({
       name: 'show_sticker',
-      arguments: { sticker_id: '0003', size: 140 },
+      arguments: mobileRoute.structuredContent.next_tool_arguments,
       _meta: {
         'openai/userAgent':
           'ChatGPT/1.2026.265 (Android 12; Mi 10 Pro; build 2626526)'
@@ -172,10 +172,15 @@ test('MCP routes desktop to Markdown and mobile or unknown to the widget tool', 
       size: 140,
       render_mode: 'widget',
       client_kind: 'mobile',
-      next_tool: 'show_sticker_mobile'
+      requires_follow_up: true,
+      next_tool: 'show_sticker_mobile',
+      next_tool_arguments: {
+        sticker_id: '0003',
+        size: 140
+      }
     });
     assert.equal(mobileRoute.structuredContent.image_url, undefined);
-    assert.match(mobileRoute.content[0].text, /Immediately call/);
+    assert.match(mobileRoute.content[0].text, /MANDATORY CONTINUATION/);
 
     const mobileRender = await client.callTool({
       name: mobileRoute.structuredContent.next_tool,
