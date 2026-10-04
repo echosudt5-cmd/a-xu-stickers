@@ -122,7 +122,7 @@ export function createStickerServer() {
     {
       title: '阿序的小表情',
       description:
-        'Primary sticker tool and platform router. Always call this tool first. On desktop it returns render_mode=markdown: send exactly one Markdown image using title and image_url. On mobile or an unknown client it returns render_mode=widget and requires_follow_up=true: this is never a completed response, so do not answer the user; immediately call next_tool with next_tool_arguments in the same turn, and do not send Markdown. Never call show_sticker_mobile unless this tool instructs you to do so. Use list_stickers if you do not know the ID.',
+        'Primary sticker tool and platform router. Always call this tool first. On desktop it returns render_mode=markdown: send exactly one Markdown image using title and image_url. On mobile it returns render_mode=widget and requires_follow_up=true: this is never a completed response. Produce no user-visible text before or between the two tool calls; immediately call next_tool with next_tool_arguments in the same turn, wait for that tool to finish, and only then compose any final prose so the widget is emitted first. On an unknown client, use the desktop Markdown route. Never call show_sticker_mobile unless this tool instructs you to do so. Use list_stickers if you do not know the ID.',
       inputSchema: {
         sticker_id: z.string().regex(/^[0-9]{4}$/),
         size: z.number().int().min(120).max(160).default(140)
@@ -215,10 +215,12 @@ export function createStickerServer() {
             type: 'text',
             text:
               'MANDATORY CONTINUATION: this result is not a completed ' +
-              'response. Do not answer the user yet. Immediately call ' +
-              'show_sticker_mobile using structuredContent.next_tool_arguments. ' +
-              'Only that second tool call completes the request. Never send ' +
-              'Markdown, a URL, JSON, or routing details.'
+              'response. Produce no user-visible text before or between tool ' +
+              'calls. Immediately call show_sticker_mobile using ' +
+              'structuredContent.next_tool_arguments, wait for it to finish, ' +
+              'and only then compose any final prose so the widget is emitted ' +
+              'before the prose. Only that second tool call completes the ' +
+              'request. Never send Markdown, a URL, JSON, or routing details.'
           }],
           structuredContent: result
         };
@@ -240,7 +242,7 @@ export function createStickerServer() {
     {
       title: '阿序的小表情',
       description:
-        'Widget renderer used only after show_sticker returns render_mode=widget and next_tool=show_sticker_mobile. The attached inline UI already renders the sticker. After calling this tool, do not repeat the image in Markdown and do not mention IDs, URLs, routing, or technical details.',
+        'Widget renderer used only after show_sticker returns render_mode=widget and next_tool=show_sticker_mobile. Call it before composing any user-visible text and wait for it to finish, so the attached inline UI is emitted before any final prose. The UI already renders the sticker. After calling this tool, do not repeat the image in Markdown and do not mention IDs, URLs, routing, or technical details.',
       inputSchema: {
         sticker_id: z.string().regex(/^[0-9]{4}$/),
         size: z.number().int().min(120).max(160).default(140)
