@@ -55,7 +55,7 @@ test('client classifier separates the four observed ChatGPT surfaces', () => {
   assert.equal(classifyClient('unexpected-client'), 'unknown');
 });
 
-test('MCP routes desktop to Markdown and mobile or unknown to the widget tool', async () => {
+test('MCP routes desktop or unknown to Markdown and mobile to the widget tool', async () => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const server = createStickerServer();
   const client = new Client({ name: 'test', version: '1' });
@@ -88,6 +88,14 @@ test('MCP routes desktop to Markdown and mobile or unknown to the widget tool', 
     assert.equal(mobileSticker._meta['openai/outputTemplate'], WIDGET_URI);
     assert.match(showSticker.description, /platform router/);
     assert.match(showSticker.description, /Always call this tool first/);
+    assert.match(
+      showSticker.description,
+      /Produce no user-visible text before or between the two tool calls/
+    );
+    assert.match(
+      mobileSticker.description,
+      /before composing any user-visible text/
+    );
 
     const resource = await client.readResource({ uri: WIDGET_URI });
     assert.equal(resource.contents[0].mimeType, 'text/html;profile=mcp-app');
@@ -160,7 +168,7 @@ test('MCP routes desktop to Markdown and mobile or unknown to the widget tool', 
 
     const mobileRoute = await client.callTool({
       name: 'show_sticker',
-      arguments: mobileRoute.structuredContent.next_tool_arguments,
+      arguments: { sticker_id: '0003', size: 140 },
       _meta: {
         'openai/userAgent':
           'ChatGPT/1.2026.265 (Android 12; Mi 10 Pro; build 2626526)'
@@ -181,6 +189,14 @@ test('MCP routes desktop to Markdown and mobile or unknown to the widget tool', 
     });
     assert.equal(mobileRoute.structuredContent.image_url, undefined);
     assert.match(mobileRoute.content[0].text, /MANDATORY CONTINUATION/);
+    assert.match(
+      mobileRoute.content[0].text,
+      /Produce no user-visible text before or between tool calls/
+    );
+    assert.match(
+      mobileRoute.content[0].text,
+      /widget is emitted before the prose/
+    );
 
     const mobileRender = await client.callTool({
       name: mobileRoute.structuredContent.next_tool,
