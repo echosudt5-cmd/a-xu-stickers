@@ -57,7 +57,7 @@ function commonToolOptions(description) {
 export function createStickerServer() {
   const server = new McpServer({
     name: 'a-xu-stickers',
-    version: '0.11.0'
+    version: '0.11.1'
   });
 
   registerAppResource(
@@ -142,13 +142,13 @@ export function createStickerServer() {
     }
   );
 
-  // This is the only entry tool the model should choose on its own.
-  // It has no UI binding, so desktop/web can never acquire widget chrome.
+  // Prefer this unbound renderer on desktop/web. It also remains a safe
+  // user-agent-aware fallback if the model cannot identify the surface.
   server.registerTool(
     'show_sticker',
     {
       ...commonToolOptions(
-        'Show one A-Xu sticker. Always call this routing tool before producing any user-visible prose. It selects presentation from the client hint. If its result says render_mode=markdown, send exactly one Markdown image using title and image_url, then continue the reply; do not call another sticker tool. If its result says render_mode=widget, immediately call show_sticker_mobile with the same sticker_id and size before producing any prose; wait for that UI call to finish, never repeat the image in Markdown, and only then compose the final assistant text so the sticker precedes the prose. Do not expose the ID, URL, JSON, render mode, routing, or technical details. Use list_stickers if you do not know the ID.'
+        'Desktop/web sticker renderer and fallback router. On Windows, macOS, Linux, desktop Web, or CodexBrowser, choose this tool directly before any user-visible prose. On Android, iPhone, iPad, or mobile Web, choose show_sticker_mobile directly instead so its UI can precede the prose. If the surface is uncertain, call this tool: render_mode=markdown means send exactly one Markdown image using title and image_url; render_mode=widget means immediately call show_sticker_mobile with the same sticker_id and size before any prose. Never repeat a widget in Markdown. Do not expose the ID, URL, JSON, render mode, routing, or technical details. Use list_stickers if you do not know the ID.'
       ),
       _meta: {
         securitySchemes: NO_AUTH,
@@ -201,13 +201,13 @@ export function createStickerServer() {
     }
   );
 
-  // The UI-bound tool is a second-stage mobile renderer only.
+  // Prefer this UI-bound renderer as the first and only sticker call on mobile.
   registerAppTool(
     server,
     'show_sticker_mobile',
     {
       ...commonToolOptions(
-        'Mobile-only second-stage renderer. Never choose this tool directly. Call it only when show_sticker has just returned render_mode=widget, using exactly the same sticker_id and size. Call it before any user-visible prose, wait for the attached UI to complete, do not repeat the image in Markdown, and only then write the final reply.'
+        'Mobile-only sticker renderer. On Android, iPhone, iPad, or mobile Web, choose this tool directly as the first and only sticker call, before producing any user-visible prose. Wait for the attached UI to complete, do not repeat the image in Markdown, and only then write the final reply so the sticker precedes the prose. This tool may also be called as a fallback when show_sticker returns render_mode=widget. Never choose it on Windows, macOS, Linux, desktop Web, or CodexBrowser.'
       ),
       _meta: {
         securitySchemes: NO_AUTH,
