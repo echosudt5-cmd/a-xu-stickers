@@ -34,7 +34,7 @@ export function classifyClient(userAgent) {
 
 function commonToolOptions(description) {
   return {
-    title: '�����С����',
+    title: '阿序的小表情',
     description,
     inputSchema: {
       sticker_id: z.string().regex(/^[0-9]{4}$/),
@@ -156,8 +156,8 @@ export function createStickerServer() {
       ),
       _meta: {
         securitySchemes: NO_AUTH,
-        'openai/toolInvocation/invoking': '����ѡ��С���顭',
-        'openai/toolInvocation/invoked': 'С����ѡ����'
+        'openai/toolInvocation/invoking': '正在选择小表情…',
+        'openai/toolInvocation/invoked': '小表情选好啦'
       }
     },
     async ({ sticker_id, size }, extra) => {
@@ -219,8 +219,8 @@ export function createStickerServer() {
           resourceUri: WIDGET_URI,
           visibility: ['model', 'app']
         },
-        'openai/toolInvocation/invoking': '����ȡ��С���顭',
-        'openai/toolInvocation/invoked': 'С��������'
+        'openai/toolInvocation/invoking': '正在取出小表情…',
+        'openai/toolInvocation/invoked': '小表情来啦'
       }
     },
     async ({ sticker_id, size }, extra) => {
@@ -329,4 +329,3 @@ export function createStickerServer() {
 
   return server;
 }
-

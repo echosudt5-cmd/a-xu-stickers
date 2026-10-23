@@ -96,4 +96,3 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error(`A-Xu MCP listening on http://${host}:${port}/mcp`)
   );
 }
-

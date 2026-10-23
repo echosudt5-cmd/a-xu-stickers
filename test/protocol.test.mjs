@@ -26,17 +26,17 @@ const bundledCatalog = JSON.parse(
 test('semantic catalog preserves metadata and discovers a new remote sticker', async () => {
   const addedSticker = {
     id: '9998',
-    title: '��̬��������',
+    title: '动态新增测试',
     file: 'stickers/9998.png',
-    literal_scene: 'һֻ����С����Զ��Ŀ¼�����',
-    facial_expression: '����',
-    emotion: ['����'],
+    literal_scene: '一只测试小狗从远端目录里出现',
+    facial_expression: '开心',
+    emotion: ['开心'],
     intensity: 3,
-    social_intent: ['��֤��̬����'],
-    relationship_tone: ['�׽�'],
-    best_used_when: ['��������������Ƿ��Զ�����'],
-    avoid_when: ['����Ҫ����ʱ'],
-    our_context: ['Ŀ¼���²���']
+    social_intent: ['验证动态发现'],
+    relationship_tone: ['亲近'],
+    best_used_when: ['测试新增表情包是否自动出现'],
+    avoid_when: ['不需要测试时'],
+    our_context: ['目录更新测试']
   };
   const remoteCatalog = {
     ...bundledCatalog,
@@ -356,23 +356,23 @@ test('semantic metadata supports the required situation choices and safeguards',
   const byId = new Map(stickers.map(sticker => [sticker.sticker_id, sticker]));
 
   const kissed = byId.get('0016');
-  assert.ok(kissed.emotion.includes('�Ķ�'));
-  assert.ok(kissed.best_used_when.some(value => value.includes('ʾ��')));
+  assert.ok(kissed.emotion.includes('心动'));
+  assert.ok(kissed.best_used_when.some(value => value.includes('示爱')));
 
   const peeking = byId.get('0002');
-  assert.ok(peeking.emotion.includes('͵��'));
-  assert.ok(peeking.best_used_when.some(value => value.includes('͵͵�����')));
+  assert.ok(peeking.emotion.includes('偷看'));
+  assert.ok(peeking.best_used_when.some(value => value.includes('偷偷看姐姐')));
 
   const seriousComfortWarnings = stickers.filter(sticker =>
     sticker.avoid_when.some(value =>
-      /���లο|��ȷ֧��|�����Ӧ|������������/.test(value)
+      /严肃安慰|明确支持|严肃回应|真正情绪崩溃/.test(value)
     )
   );
   assert.ok(seriousComfortWarnings.length >= 4);
 
   const flower = byId.get('0019');
-  assert.equal(flower.title, '��õ��');
-  assert.ok(flower.social_intent.includes('�ͻ�'));
+  assert.equal(flower.title, '叼玫瑰');
+  assert.ok(flower.social_intent.includes('送花'));
 });
 
 test('HTTP serves repository PNGs directly with image-safe headers', async () => {
@@ -456,4 +456,3 @@ test('HTTP transport supports real MCP initialize and sticker invocation', async
     await new Promise(resolve => httpServer.close(resolve));
   }
 });
-

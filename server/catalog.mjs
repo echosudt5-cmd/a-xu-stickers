@@ -155,4 +155,3 @@ export async function listStickersSemantic() {
     our_context: sticker.our_context
   }));
 }
-
