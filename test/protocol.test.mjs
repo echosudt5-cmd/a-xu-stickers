@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import {
@@ -8,9 +9,87 @@ import {
   APP_ORIGIN,
   classifyClient
 } from '../server/mcp.mjs';
-import { getSticker, listStickers, ASSET_BASE } from '../server/catalog.mjs';
+import {
+  getSticker,
+  listStickers,
+  listStickersSemantic,
+  ASSET_BASE,
+  METADATA_URL
+} from '../server/catalog.mjs';
 import { createHttpServer } from '../server/http.mjs';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+
+const bundledCatalog = JSON.parse(
+  readFileSync(new URL('../metadata/stickers.json', import.meta.url), 'utf8')
+);
+
+test('semantic catalog preserves metadata and discovers a new remote sticker', async () => {
+  const addedSticker = {
+    id: '9998',
+    title: '��̬��������',
+    file: 'stickers/9998.png',
+    literal_scene: 'һֻ����С����Զ��Ŀ¼�����',
+    facial_expression: '����',
+    emotion: ['����'],
+    intensity: 3,
+    social_intent: ['��֤��̬����'],
+    relationship_tone: ['�׽�'],
+    best_used_when: ['��������������Ƿ��Զ�����'],
+    avoid_when: ['����Ҫ����ʱ'],
+    our_context: ['Ŀ¼���²���']
+  };
+  const remoteCatalog = {
+    ...bundledCatalog,
+    count: bundledCatalog.stickers.length + 1,
+    stickers: [...bundledCatalog.stickers, addedSticker]
+  };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    if (String(input) === METADATA_URL) {
+      return new Response(JSON.stringify(remoteCatalog), {
+        status: 200,
+        headers: { 'content-type': 'application/json' }
+      });
+    }
+    return originalFetch(input, init);
+  };
+
+  try {
+    const semantic = await listStickersSemantic();
+    const simple = await listStickers();
+    const expected = bundledCatalog.stickers.map(sticker => ({
+      sticker_id: sticker.id,
+      title: sticker.title,
+      literal_scene: sticker.literal_scene,
+      facial_expression: sticker.facial_expression,
+      emotion: sticker.emotion,
+      intensity: sticker.intensity,
+      social_intent: sticker.social_intent,
+      relationship_tone: sticker.relationship_tone,
+      best_used_when: sticker.best_used_when,
+      avoid_when: sticker.avoid_when,
+      our_context: sticker.our_context
+    }));
+
+    assert.deepEqual(semantic.slice(0, bundledCatalog.stickers.length), expected);
+    assert.deepEqual(semantic.at(-1), {
+      sticker_id: addedSticker.id,
+      title: addedSticker.title,
+      literal_scene: addedSticker.literal_scene,
+      facial_expression: addedSticker.facial_expression,
+      emotion: addedSticker.emotion,
+      intensity: addedSticker.intensity,
+      social_intent: addedSticker.social_intent,
+      relationship_tone: addedSticker.relationship_tone,
+      best_used_when: addedSticker.best_used_when,
+      avoid_when: addedSticker.avoid_when,
+      our_context: addedSticker.our_context
+    });
+    assert.ok(simple.some(sticker => sticker.sticker_id === addedSticker.id));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
 
 test('live catalog resolves exact IDs and rejects unavailable IDs/sizes', async () => {
   const stickers = await listStickers();
@@ -55,7 +134,7 @@ test('client classifier separates the four observed ChatGPT surfaces', () => {
   assert.equal(classifyClient('unexpected-client'), 'unknown');
 });
 
-test('MCP uses one adaptive standard-only UI-bound tool', async () => {
+test('MCP keeps split renderers and exposes both catalog tools', async () => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const server = createStickerServer();
   const client = new Client({ name: 'test', version: '1' });
@@ -71,30 +150,42 @@ test('MCP uses one adaptive standard-only UI-bound tool', async () => {
     const inspectUserAgent = tools.find(
       tool => tool.name === 'inspect_client_user_agent'
     );
-    assert.equal(mobileSticker, undefined);
+    const listStickerTool = tools.find(tool => tool.name === 'list_stickers');
+    const semanticTool = tools.find(
+      tool => tool.name === 'list_stickers_semantic'
+    );
+    assert.ok(mobileSticker);
     assert.ok(inspectUserAgent);
+    assert.ok(listStickerTool);
+    assert.ok(semanticTool);
     assert.equal(inspectUserAgent._meta.ui, undefined);
     assert.equal(
       inspectUserAgent._meta['openai/outputTemplate'],
       undefined
     );
-    assert.equal(showSticker._meta.ui.resourceUri, WIDGET_URI);
-    assert.deepEqual(showSticker._meta.ui.visibility, ['model', 'app']);
+    assert.equal(showSticker._meta.ui, undefined);
     assert.equal(
       showSticker._meta['openai/outputTemplate'],
       undefined
     );
-    assert.match(showSticker.description, /single adaptive tool call/);
+    assert.equal(mobileSticker._meta.ui.resourceUri, WIDGET_URI);
+    assert.deepEqual(mobileSticker._meta.ui.visibility, ['model', 'app']);
+    assert.equal(mobileSticker._meta['openai/outputTemplate'], undefined);
+    assert.equal(semanticTool._meta.ui, undefined);
+    assert.match(showSticker.description, /Desktop\/web sticker renderer/);
     assert.match(
-      showSticker.description,
+      mobileSticker.description,
       /before producing any user-visible prose/
     );
     assert.match(
-      showSticker.description,
-      /only then compose the final assistant text/
+      mobileSticker.description,
+      /only then write the final reply/
     );
     assert.match(showSticker.description, /render_mode=markdown/);
     assert.match(showSticker.description, /render_mode=widget/);
+    assert.match(semanticTool.description, /emotion/);
+    assert.match(semanticTool.description, /avoid_when/);
+    assert.match(semanticTool.description, /do not force a match/);
 
     const resource = await client.readResource({ uri: WIDGET_URI });
     assert.equal(resource.contents[0].mimeType, 'text/html;profile=mcp-app');
@@ -182,9 +273,25 @@ test('MCP uses one adaptive standard-only UI-bound tool', async () => {
       client_kind: 'mobile'
     });
     assert.equal(mobileResult.content.length, 1);
+    assert.match(
+      mobileResult.content[0].text,
+      /immediately call show_sticker_mobile/
+    );
+
+    const directMobileResult = await client.callTool({
+      name: 'show_sticker_mobile',
+      arguments: { sticker_id: '0003', size: 140 },
+      _meta: {
+        'openai/userAgent':
+          'ChatGPT/1.2026.265 (Android 12; Mi 10 Pro; build 2626526)'
+      }
+    });
+    assert.equal(directMobileResult.structuredContent.sticker_id, '0003');
+    assert.equal(directMobileResult.structuredContent.render_mode, 'widget');
+    assert.equal(directMobileResult.structuredContent.client_kind, 'mobile');
     assert.deepEqual(
-      JSON.parse(mobileResult.content[0].text),
-      mobileResult.structuredContent
+      JSON.parse(directMobileResult.content[0].text),
+      directMobileResult.structuredContent
     );
 
     const unknownResult = await client.callTool({
@@ -216,10 +323,56 @@ test('MCP uses one adaptive standard-only UI-bound tool', async () => {
       arguments: {}
     });
     assert.ok(list.structuredContent.stickers.length >= 25);
+
+    const semantic = await client.callTool({
+      name: 'list_stickers_semantic',
+      arguments: {}
+    });
+    assert.ok(semantic.structuredContent.stickers.length >= 25);
+    assert.deepEqual(
+      Object.keys(semantic.structuredContent.stickers[0]).sort(),
+      [
+        'avoid_when',
+        'best_used_when',
+        'emotion',
+        'facial_expression',
+        'intensity',
+        'literal_scene',
+        'our_context',
+        'relationship_tone',
+        'social_intent',
+        'sticker_id',
+        'title'
+      ]
+    );
   } finally {
     await client.close();
     await server.close();
   }
+});
+
+test('semantic metadata supports the required situation choices and safeguards', async () => {
+  const stickers = await listStickersSemantic();
+  const byId = new Map(stickers.map(sticker => [sticker.sticker_id, sticker]));
+
+  const kissed = byId.get('0016');
+  assert.ok(kissed.emotion.includes('�Ķ�'));
+  assert.ok(kissed.best_used_when.some(value => value.includes('ʾ��')));
+
+  const peeking = byId.get('0002');
+  assert.ok(peeking.emotion.includes('͵��'));
+  assert.ok(peeking.best_used_when.some(value => value.includes('͵͵�����')));
+
+  const seriousComfortWarnings = stickers.filter(sticker =>
+    sticker.avoid_when.some(value =>
+      /���లο|��ȷ֧��|�����Ӧ|������������/.test(value)
+    )
+  );
+  assert.ok(seriousComfortWarnings.length >= 4);
+
+  const flower = byId.get('0019');
+  assert.equal(flower.title, '��õ��');
+  assert.ok(flower.social_intent.includes('�ͻ�'));
 });
 
 test('HTTP serves repository PNGs directly with image-safe headers', async () => {
@@ -303,3 +456,4 @@ test('HTTP transport supports real MCP initialize and sticker invocation', async
     await new Promise(resolve => httpServer.close(resolve));
   }
 });
+

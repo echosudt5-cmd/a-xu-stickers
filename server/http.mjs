@@ -43,7 +43,7 @@ export function createHttpServer() {
         'cache-control': 'no-store'
       }).end(JSON.stringify({
         ok: true,
-        version: '0.11.1',
+        version: '0.12.0',
         rendering: 'direct-mobile-preferred-with-router-fallback',
         branch: 'experiment/adaptive-rendering'
       }));
@@ -96,3 +96,4 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error(`A-Xu MCP listening on http://${host}:${port}/mcp`)
   );
 }
+

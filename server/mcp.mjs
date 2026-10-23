@@ -6,7 +6,11 @@ import {
   RESOURCE_MIME_TYPE
 } from '@modelcontextprotocol/ext-apps/server';
 import { z } from 'zod';
-import { getSticker, listStickers } from './catalog.mjs';
+import {
+  getSticker,
+  listStickers,
+  listStickersSemantic
+} from './catalog.mjs';
 
 export const WIDGET_URI = 'ui://a-xu/sticker-v7.html';
 export const APP_ORIGIN = 'https://a-xu-stickers.onrender.com';
@@ -30,7 +34,7 @@ export function classifyClient(userAgent) {
 
 function commonToolOptions(description) {
   return {
-    title: '阿序的小表情',
+    title: '�����С����',
     description,
     inputSchema: {
       sticker_id: z.string().regex(/^[0-9]{4}$/),
@@ -57,7 +61,7 @@ function commonToolOptions(description) {
 export function createStickerServer() {
   const server = new McpServer({
     name: 'a-xu-stickers',
-    version: '0.11.1'
+    version: '0.12.0'
   });
 
   registerAppResource(
@@ -152,8 +156,8 @@ export function createStickerServer() {
       ),
       _meta: {
         securitySchemes: NO_AUTH,
-        'openai/toolInvocation/invoking': '正在选择小表情…',
-        'openai/toolInvocation/invoked': '小表情选好啦'
+        'openai/toolInvocation/invoking': '����ѡ��С���顭',
+        'openai/toolInvocation/invoked': 'С����ѡ����'
       }
     },
     async ({ sticker_id, size }, extra) => {
@@ -215,8 +219,8 @@ export function createStickerServer() {
           resourceUri: WIDGET_URI,
           visibility: ['model', 'app']
         },
-        'openai/toolInvocation/invoking': '正在取出小表情…',
-        'openai/toolInvocation/invoked': '小表情来啦'
+        'openai/toolInvocation/invoking': '����ȡ��С���顭',
+        'openai/toolInvocation/invoked': 'С��������'
       }
     },
     async ({ sticker_id, size }, extra) => {
@@ -265,7 +269,7 @@ export function createStickerServer() {
     {
       title: 'List sticker IDs',
       description:
-        'List the exact A-Xu sticker IDs and titles currently available in the live GitHub catalog. No image is rendered. Semantic retrieval is not implemented yet.',
+        'List the exact A-Xu sticker IDs and titles currently available in the live GitHub catalog. No image is rendered. Use list_stickers_semantic when choosing by emotion or conversation context.',
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
@@ -282,5 +286,47 @@ export function createStickerServer() {
     })
   );
 
+  server.registerTool(
+    'list_stickers_semantic',
+    {
+      title: 'List stickers with semantic metadata',
+      description:
+        'Return every available sticker with its existing semantic metadata. Use this when the user asks for a sticker matching an emotion or situation, or when you proactively want to send a sticker that fits the current conversation. The user does not need to provide a sticker number. Choose by considering emotion, social_intent, best_used_when, avoid_when, our_context, and the other returned fields together. If no sticker is a good fit, do not force a match or send one. After selecting a sticker_id, preserve the established cross-platform display path: use show_sticker on desktop/Web and show_sticker_mobile on mobile, before user-visible prose as their descriptions require.',
+      inputSchema: {},
+      outputSchema: {
+        stickers: z.array(z.object({
+          sticker_id: z.string(),
+          title: z.string(),
+          literal_scene: z.string(),
+          facial_expression: z.string(),
+          emotion: z.array(z.string()),
+          intensity: z.number().int().min(1).max(5),
+          social_intent: z.array(z.string()),
+          relationship_tone: z.array(z.string()),
+          best_used_when: z.array(z.string()),
+          avoid_when: z.array(z.string()),
+          our_context: z.array(z.string())
+        }))
+      },
+      securitySchemes: NO_AUTH,
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: true,
+        idempotentHint: true
+      },
+      _meta: {
+        securitySchemes: NO_AUTH
+      }
+    },
+    async () => ({
+      content: [],
+      structuredContent: {
+        stickers: await listStickersSemantic()
+      }
+    })
+  );
+
   return server;
 }
+

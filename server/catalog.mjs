@@ -10,6 +10,15 @@ export const ASSET_BASE =
   'https://raw.githubusercontent.com/echosudt5-cmd/a-xu-stickers/main/';
 const CACHE_TTL_MS = 60_000;
 const MAX_CATALOG_BYTES = 1_000_000;
+const SEMANTIC_STRING_FIELDS = ['literal_scene', 'facial_expression'];
+const SEMANTIC_ARRAY_FIELDS = [
+  'emotion',
+  'social_intent',
+  'relationship_tone',
+  'best_used_when',
+  'avoid_when',
+  'our_context'
+];
 
 let cachedCatalog = validateCatalog(bundledCatalog);
 let cacheExpiresAt = 0;
@@ -33,6 +42,31 @@ function validateCatalog(catalog) {
     }
     if (sticker.file !== `stickers/${sticker.id}.png`) {
       throw new Error(`Invalid image path for sticker ${sticker.id}.`);
+    }
+
+    for (const field of SEMANTIC_STRING_FIELDS) {
+      if (typeof sticker[field] !== 'string' || !sticker[field].trim()) {
+        throw new Error(`Invalid ${field} for sticker ${sticker.id}.`);
+      }
+    }
+
+    if (
+      !Number.isInteger(sticker.intensity) ||
+      sticker.intensity < 1 ||
+      sticker.intensity > 5
+    ) {
+      throw new Error(`Invalid intensity for sticker ${sticker.id}.`);
+    }
+
+    for (const field of SEMANTIC_ARRAY_FIELDS) {
+      if (
+        !Array.isArray(sticker[field]) ||
+        sticker[field].some(
+          value => typeof value !== 'string' || !value.trim()
+        )
+      ) {
+        throw new Error(`Invalid ${field} for sticker ${sticker.id}.`);
+      }
     }
     seen.add(sticker.id);
   }
@@ -104,3 +138,21 @@ export async function listStickers() {
     title
   }));
 }
+
+export async function listStickersSemantic() {
+  const catalog = await loadCatalog();
+  return catalog.stickers.map(sticker => ({
+    sticker_id: sticker.id,
+    title: sticker.title,
+    literal_scene: sticker.literal_scene,
+    facial_expression: sticker.facial_expression,
+    emotion: sticker.emotion,
+    intensity: sticker.intensity,
+    social_intent: sticker.social_intent,
+    relationship_tone: sticker.relationship_tone,
+    best_used_when: sticker.best_used_when,
+    avoid_when: sticker.avoid_when,
+    our_context: sticker.our_context
+  }));
+}
+
